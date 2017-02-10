@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	default-autowire="byName" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd       
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd       
+	  http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd">
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />
+	<mvc:annotation-driven>
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+			<bean
+				class="org.springframework.http.converter.ResourceHttpMessageConverter" />
+			<bean				
+				class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+				<property name="objectMapper" ref="jsonMapper" />
+			</bean>
+		</mvc:message-converters>
+		<mvc:argument-resolvers>
+			<bean class="com.fr.chain.web.bind.RequestJsonParamMethodArgumentResolver" />
+		</mvc:argument-resolvers>
+	</mvc:annotation-driven>
+
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix">
+			<value>/WEB-INF/view/</value>
+		</property>
+		<property name="suffix">
+			<value>.jsp</value>
+		</property>
+	</bean>
+
+	<bean id="jsonMapper" class="com.fr.chain.web.bind.RestObjectMapper" />
+
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+		<property name="alwaysUseFullPath" value="true" />
+	</bean>
+
+	<bean class="com.fr.chain.web.bind.UTF8StringHttpMessageConverter" />
+
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<property name="order" value="10" />
+	</bean>
+	
+	<!-- <bean id="view_excel" class="com.fr.chain.utils.ExcelRevenueReportView" /> -->
+
+	<mvc:resources location="/" mapping="/**" />
+	
+	<context:annotation-config />
+	<context:component-scan base-package="com.fr.chain" />
+	
+</beans>

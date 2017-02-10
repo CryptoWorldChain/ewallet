@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	default-autowire="byName" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd       
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd       
+	  http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd">
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />
+	<mvc:annotation-driven>
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+			<bean
+				class="org.springframework.http.converter.ResourceHttpMessageConverter" />
+			<bean
+				class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="objectMapper" ref="jsonMapper" />
+			</bean>
+		</mvc:message-converters>
+		<mvc:argument-resolvers>
+			<bean class="com.fr.chain.web.bind.RequestJsonParamMethodArgumentResolver" />
+		</mvc:argument-resolvers>
+	</mvc:annotation-driven>
+
+
+	<bean id="jsonMapper" class="com.fr.chain.web.bind.RestObjectMapper" />
+
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+		<property name="alwaysUseFullPath" value="true" />
+	</bean>
+
+	<bean class="com.fr.chain.web.bind.UTF8StringHttpMessageConverter" />
+
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<property name="order" value="10" />
+	</bean>
+
+<!-- 	<bean id="view_excel" class="com.fr.chain.utils.ExcelRevenueReportView" /> -->
+
+	<mvc:resources location="/" mapping="/**" />
+	<!-- 对包的扫描注入 -->
+	<context:annotation-config />
+
+<!-- 	<context:component-scan base-package="com.fr.chain.bankmsg.web.action" />
+	<context:component-scan base-package="com.fr.chain.bankmsg.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.crm.web.action" />
+	<context:component-scan base-package="com.fr.chain.crm.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.game.web.action" />
+	<context:component-scan base-package="com.fr.chain.game.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.innerc.web.action" />
+	<context:component-scan base-package="com.fr.chain.innerc.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.shift.web.action" />
+	<context:component-scan base-package="com.fr.chain.shift.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.shift.db.dao" />
+	<context:component-scan base-package="com.fr.chain.withdraw.web.action" />
+	<context:component-scan base-package="com.fr.chain.withdraw.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.wpf.web.action" />
+	<context:component-scan base-package="com.fr.chain.wpf.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.sys.web.action" />
+	<context:component-scan base-package="com.fr.chain.sys.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.risk.web.action" />
+	<context:component-scan base-package="com.fr.chain.risk.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.load.web.action" />
+	<context:component-scan base-package="com.fr.chain.load.db.mapper" />
+	<context:component-scan base-package="com.fr.chain.ebank.web.action" /> -->
+	
+	<context:component-scan base-package="com.fr.chain" />
+
+</beans>

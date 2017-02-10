@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="wallet-base">
+        <wb-resource deploy-path="/" source-path="/src/main/resources"/>
+        <wb-resource deploy-path="/" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/" source-path="/src/gens/java"/>
+        <property name="context-root" value="wallet-base"/>
+        <property name="java-output-path" value="/wallet-base/target/classes"/>
+    </wb-module>
+</project-modules>
