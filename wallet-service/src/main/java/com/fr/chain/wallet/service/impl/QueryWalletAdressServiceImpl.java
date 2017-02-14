@@ -31,4 +31,13 @@ public class QueryWalletAdressServiceImpl implements QueryWalletAdressService {
 	public List<WalletAdress>  selectByExample(WalletAdressExample info){
 		return  walletAdressDao.selectByExample(info);	
 	}
+	
+	@Override
+	public WalletAdress  selectOneByExample(WalletAdress info){
+		List<WalletAdress>  walletAdressList = walletAdressDao.selectByExample(walletAdressDao.getExample(info));
+		if(walletAdressList != null && walletAdressList.size() > 0){
+			return walletAdressList.get(0);
+		}		
+		return null;
+	}
 }

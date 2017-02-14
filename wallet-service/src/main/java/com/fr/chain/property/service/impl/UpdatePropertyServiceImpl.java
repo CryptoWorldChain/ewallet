@@ -25,5 +25,13 @@ public class UpdatePropertyServiceImpl implements UpdatePropertyService {
 	public int updateByPrimaryKey(Property record) {
 		return propertyDao.updateByPrimaryKey(record);
 	}
+	
+	
+	@Override
+	public int updateByPrimaryKeySelective(Property record) {
+		return propertyDao.updateByPrimaryKeySelective(record);
+	}
+	
+	
 
 }
