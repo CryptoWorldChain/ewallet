@@ -25,6 +25,7 @@ import com.fr.chain.vo.trade.Res_QueryTradeOrderVo;
 import com.fr.chain.vo.trade.Res_SendPropertyVo;
 import com.fr.chain.vo.trade.SendPropertyVo;
 import com.fr.chain.enums.BaseStatusEnum;
+import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.facadeservice.property.PropertyService;
 import com.fr.chain.facadeservice.trade.TradeOrderService;
 import com.fr.chain.message.Message;
@@ -124,23 +125,36 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 						tradeOrder.setIsSelfSupport(msgVo.getIsselfsupport());
 						tradeOrder.setSigntype(msgVo.getSigntype());
 						List<TradeOrder> tradeOrderList = queryTradeOrderService.selectByExample(tradeOrder);
+						if(tradeOrderList == null || tradeOrderList.size() == 0){
+							//String errMsg = String.format("没有查询到相应的结果!");
+							throw new IllegalArgumentException("没有查询到相应的结果!");
+						}						
 						//创建返回报文
 						Res_QueryTradeOrderVo res_QueryTradeOrderVo = new Res_QueryTradeOrderVo(msgVo.getDatano());
-						if(tradeOrderList != null && tradeOrderList.size()>0){ 
-							TradeOrder tmpTradeOrder = tradeOrderList.get(0);
-							BeanUtils.copyProperties(res_QueryTradeOrderVo, tmpTradeOrder); //拷贝
+						for(TradeOrder tmpTradeOrder:tradeOrderList){ 
+							Res_QueryTradeOrderVo.TradeOrderData tradeOrderData = new Res_QueryTradeOrderVo.TradeOrderData();
+							//BeanUtils.copyProperties(tradeOrderData, tradeOrder);
+							tradeOrderData.setPropertytype(tmpTradeOrder.getPropertyType());
+							tradeOrderData.setIsselfsupport(tmpTradeOrder.getIsSelfSupport());
+							tradeOrderData.setProductid(tmpTradeOrder.getProductId());
+							tradeOrderData.setIsdigit(tmpTradeOrder.getIsDigit());
+							tradeOrderData.setSigntype(tmpTradeOrder.getSigntype());
+							tradeOrderData.setPropertyname(tmpTradeOrder.getPropertyName());
+							tradeOrderData.setUnit(tmpTradeOrder.getUnit());
+							tradeOrderData.setCount(tmpTradeOrder.getCount());
+							tradeOrderData.setAddress(tmpTradeOrder.getAddress());	
+							tradeOrderData.setTradetype(tmpTradeOrder.getTradeType());
+							res_QueryTradeOrderVo.getData().add(tradeOrderData);
 						}
 						//设置返回报文
 						resp.put(msgVo.getDatano(), res_QueryTradeOrderVo);
 					}catch (NullPointerException ne) {
 						log.error("Create Account is failed:" + ne.getMessage(), ne);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ne.getMessage()));
-					}
-					catch (IllegalArgumentException ile) {
+					}catch (IllegalArgumentException ile) {
 						log.error("Create Account is failed:" + ile.getMessage(), ile);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ile.getMessage()));
-					}
-					catch (Exception e) {
+					}catch (Exception e) {
 						log.error("Create Account is failed:" + e.getMessage(), e);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
 					}
@@ -183,6 +197,10 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 						for(SendPropertyVo.PackageData packageData :packageDataList){
 							property.setProductId(packageData.getProductid());
 							Property tmpProperty = queryPropertyService.selectOneByExample(property);
+							if(tmpProperty==null){
+								String errMsg = String.format("productId:%s,没有查询到相应的结果!",packageData.getProductid());
+								throw new IllegalArgumentException(errMsg);
+							}
 							int diff = NumberUtil.toInt(tmpProperty.getCount()) - NumberUtil.toInt(packageData.getCount()); 
 							if(diff < 0){
 								String errMsg = String.format("productId:%s,count:%s is to big",packageData.getProductid(), packageData.getCount());
@@ -191,36 +209,32 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 								//送出全部资产挂载到系统账户中,删除送出人资产
 								delPropertyService.deleteByPrimaryKey(tmpProperty);
 							}else{
-							    //送出部分资产
+							    //送出部分资产								
 								tmpProperty.setCount(String.valueOf(diff));
-								updatePropertyService.updateByPrimaryKey(tmpProperty);
+								updatePropertyService.updateByPrimaryKeySelective(tmpProperty);
 							}
 							
 							//增加系统资产
+							tmpProperty.setPropertyId(IDGenerator.nextID());
 							tmpProperty.setCount(packageData.getCount());
 							tmpProperty.setOpenId("OpenId_sys");
 							tmpProperty.setCreateTime(DateUtil.getSystemDate());
-							String address= "chainAdress";//调用底层生成区块链地址
+							String address= IDGenerator.nextID();//"chainAdress";//调用底层生成区块链地址
 							tmpProperty.setAddress(address);
 							createPropertyService.insert(tmpProperty);
 							
-							
 							//创建订单
-							TradeOrder tradeOrder = new TradeOrder();
-							BeanUtils.copyProperties(tmpProperty, tradeOrder);
-							tradeOrder.setOpenId(msg.getOpenid());
-							tradeOrder.setTradeType("send");
-							tradeOrder.setCreateTime(DateUtil.getSystemDate());
-							createTradeOrderService.insert(tradeOrder);	
+							tmpProperty.setOpenId(msg.getOpenid());
+							createTradeOrderService.insertTradeByProperty(tmpProperty, TradeTypeEnum.发送资产.getValue());
 							
 							//系统订单
-							tradeOrder.setOpenId("OpenId_sys");
-							tradeOrder.setTradeType("create");						
-							createTradeOrderService.insert(tradeOrder);
-							
+							tmpProperty.setOpenId("OpenId_sys");
+							createTradeOrderService.insertTradeByProperty(property, TradeTypeEnum.领取资产.getValue());
+			
 							//组装返回报文
 							Res_SendPropertyVo.PackageData resPackageData = new Res_SendPropertyVo.PackageData();
-							BeanUtils.copyProperties(resPackageData, packageData);
+							resPackageData.setProductid(packageData.getProductid());
+							resPackageData.setCount(packageData.getCount());
 							resPackageData.setAddress(address);
 							res_SendPropertyVo.getData().add(resPackageData);							
 						}
@@ -262,7 +276,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 		try {
 			List<GetPropertyVo> datas = msg.getBodyDatas();
 			if (datas != null && datas.size() > 0) {
-				List<Property> propertys = new ArrayList<Property>();				
 				for (GetPropertyVo msgVo : datas) {
 					try{					
 						//验证报文信息
@@ -270,34 +283,35 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 						Property property= new Property();
 						property.setMerchantId(msg.getMerchantid());
 						property.setAppId(msg.getAppid());	
-						property.setProductId(msgVo.getProductid());
-						property.setAddress(msgVo.getAddress());
-						Property tmpProperty = queryPropertyService.selectOneByExample(property);
-						int diff = NumberUtil.toInt(tmpProperty.getCount()) - NumberUtil.toInt(msgVo.getCount()); 
-						if(diff != 0){
-							String errMsg = String.format("productId:%s,the count:%s is error",msgVo.getProductid(), msgVo.getCount());
-							throw new IllegalArgumentException(errMsg);
+						List<GetPropertyVo.PackageData> packageDataList  =  msgVo.getData();
+						for(GetPropertyVo.PackageData packageData :packageDataList){
+							property.setProductId(packageData.getProductid());
+							property.setAddress(packageData.getAddress());
+							Property tmpProperty = queryPropertyService.selectOneByExample(property);
+							if(tmpProperty==null){
+								String errMsg = String.format("没有查询到productId=%s相应的结果!",packageData.getProductid());
+								throw new IllegalArgumentException(errMsg);
+							}
+							int diff = NumberUtil.toInt(tmpProperty.getCount()) - NumberUtil.toInt(packageData.getCount()); 
+							if(diff != 0){
+								String errMsg = String.format("productId:%s,the count:%s is error",packageData.getProductid(), packageData.getCount());
+								throw new IllegalArgumentException(errMsg);
+							}
+							//领取资产,只变更用户,区块链地址不变
+							tmpProperty.setOpenId(msg.getOpenid());	
+							tmpProperty.setCreateTime(DateUtil.getSystemDate());
+							updatePropertyService.updateByPrimaryKey(tmpProperty);
+							
+							//创建订单
+							tmpProperty.setOpenId(msg.getOpenid());
+							createTradeOrderService.insertTradeByProperty(tmpProperty, TradeTypeEnum.领取资产.getValue());
+							
+							//系统订单
+							tmpProperty.setOpenId("OpenId_sys");
+							createTradeOrderService.insertTradeByProperty(property, TradeTypeEnum.发送资产.getValue());
 						}
-						//领取资产,只变更用户,区块链地址不变
-						tmpProperty.setOpenId(msg.getOpenid());	
-						tmpProperty.setCreateTime(DateUtil.getSystemDate());
-						updatePropertyService.updateByPrimaryKey(tmpProperty);
-						
-						//创建订单
-						TradeOrder tradeOrder = new TradeOrder();
-						BeanUtils.copyProperties(tmpProperty, tradeOrder);
-						tradeOrder.setOpenId(msg.getOpenid());
-						tradeOrder.setTradeType("recv");
-						tradeOrder.setCreateTime(DateUtil.getSystemDate());
-						createTradeOrderService.insert(tradeOrder);	
-						
-						//系统订单
-						tradeOrder.setOpenId("OpenId_sys");
-						tradeOrder.setTradeType("recv");						
-						createTradeOrderService.insert(tradeOrder);
-						
 						//组装返回报文
-					    ResponseMsg responseMsg =new ResponseMsg(msgVo.getDatano());
+						ResponseMsg responseMsg =new ResponseMsg(msgVo.getDatano());
 						resp.put(msgVo.getDatano(), responseMsg);
 					}catch (NullPointerException ne) {
 						log.error("Create Account is failed:" + ne.getMessage(), ne);
@@ -312,9 +326,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
 					}
 				}
-				
-				//批量入库
-				createPropertyService.batchInsert(propertys);
 			}
 		}		
 		catch (Exception e) {
@@ -339,7 +350,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 		try {
 			List<ChangePropertyVo> datas = msg.getBodyDatas();
 			if (datas != null && datas.size() > 0) {
-				List<Property> propertys = new ArrayList<Property>();				
 				for (ChangePropertyVo msgVo : datas) {
 					try{					
 						this.validNull(msgVo);
@@ -349,15 +359,16 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 						property.setAppId(msg.getAppid());	
 						property.setProductId(msgVo.getProductid());
 						Property tmpProperty = queryPropertyService.selectOneByExample(property);
+						if(tmpProperty==null){
+							String errMsg = String.format("没有查询到productId=%s相应的结果!",msgVo.getProductid());
+							throw new IllegalArgumentException(errMsg);
+						}
+					
 						//丢弃或者使用资产,资产表中直接删除
 						delPropertyService.deleteByPrimaryKey(tmpProperty);
 						
 						//创建订单
-						TradeOrder tradeOrder = new TradeOrder();
-						BeanUtils.copyProperties(tmpProperty, tradeOrder);
-						tradeOrder.setTradeType(msgVo.getTradetype());
-						tradeOrder.setCreateTime(DateUtil.getSystemDate());
-						createTradeOrderService.insert(tradeOrder);	
+						createTradeOrderService.insertTradeByProperty(tmpProperty, TradeTypeEnum.领取资产.getValue());
 						
 						//组装返回报文
 					    ResponseMsg responseMsg =new ResponseMsg(msgVo.getDatano());
@@ -374,13 +385,9 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 						log.error("Create Account is failed:" + e.getMessage(), e);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
 					}
-				}
-				
-				//批量入库
-				createPropertyService.batchInsert(propertys);
+				}			
 			}
-		}		
-		catch (Exception e) {
+		}catch (Exception e) {
 			log.error("Create Account is failed:" + e.getMessage(), e);
 			Map<String, MsgBody> errResp = new LinkedHashMap<String, MsgBody>();
 			for (MsgBody body : msg.getBodyDatas()) {	
@@ -388,7 +395,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 			}
 			return msg.asResponse(errResp);			
 		}
-		
 		//回复所有报文
 		return msg.asResponse(resp);	
 	}
@@ -449,19 +455,25 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 		String error="%s is null or empty";
 		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
 		if(StringUtil.isBlank(msgVo.getPackageid())) throw new NullPointerException(String.format(error,"packageid"));
-		SendPropertyVo.PackageData data = new SendPropertyVo.PackageData();
-		if(data==null) throw new NullPointerException(String.format(error,"data"));
-		if(StringUtil.isBlank(data.getCount())) throw new NullPointerException(String.format(error,"count"));
-		if(StringUtil.isBlank(data.getProductid())) throw new NullPointerException(String.format(error,"productid"));
+		List<SendPropertyVo.PackageData> dataList = msgVo.getData();
+		if(dataList == null) throw new NullPointerException(String.format(error,"data"));
+		for(SendPropertyVo.PackageData data: dataList){
+			if(StringUtil.isBlank(data.getCount())) throw new NullPointerException(String.format(error,"count"));
+			if(StringUtil.isBlank(data.getProductid())) throw new NullPointerException(String.format(error,"productid"));
+		}
 	}
 	
 	private void validNull(GetPropertyVo msgVo){
 		String error="%s is null or empty";
 		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
-		if(StringUtil.isBlank(msgVo.getProductid())) throw new NullPointerException(String.format(error,"productid"));
-		if(StringUtil.isBlank(msgVo.getCount())) throw new NullPointerException(String.format(error,"count"));
-		if(StringUtil.isBlank(msgVo.getAddress())) throw new NullPointerException(String.format(error,"address"));
-		if(StringUtil.isBlank(msgVo.getOwner())) throw new NullPointerException(String.format(error,"owner"));
+		List<GetPropertyVo.PackageData> dataList = msgVo.getData();
+		if(dataList == null) throw new NullPointerException(String.format(error,"data"));
+		for(GetPropertyVo.PackageData data: dataList){
+			if(StringUtil.isBlank(data.getProductid())) throw new NullPointerException(String.format(error,"productid"));
+			if(StringUtil.isBlank(data.getCount())) throw new NullPointerException(String.format(error,"count"));
+			if(StringUtil.isBlank(data.getAddress())) throw new NullPointerException(String.format(error,"address"));
+			if(StringUtil.isBlank(data.getOwner())) throw new NullPointerException(String.format(error,"owner"));
+		}
 	}
 	
 	private void validNull(ChangePropertyVo msgVo){

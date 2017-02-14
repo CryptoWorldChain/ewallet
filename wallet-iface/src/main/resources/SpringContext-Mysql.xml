@@ -47,14 +47,27 @@
 		<property name="mapperInterface" value="com.fr.chain.db.dao.CommonSqlMapper" />
 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
 	</bean>
+	
+	<aop:config>
+		<aop:pointcut id="allDaoMethod"
+			expression="execution(* com.fr.chain.*.db.dao.*.*(..))" />
+		<aop:advisor pointcut-ref="allDaoMethod"
+			advice-ref="MysqlAdvice" />
+	</aop:config>
+	
+	<aop:config>
+		<aop:pointcut id="allServiceMethod"
+			expression="execution(* com.fr.chain.service.*.*(..))" />
+		<aop:advisor pointcut-ref="allServiceMethod"
+			advice-ref="MysqlAdvice" />
+	</aop:config>
+	
 
  	<aop:config>
-		<aop:pointcut id="allTestServiceMethod"
+		<aop:pointcut id="allFacadeservice"
 			expression="execution(* com.fr.chain.facadeservice.*.*(..))" />
-		<aop:advisor pointcut-ref="allTestServiceMethod"
+		<aop:advisor pointcut-ref="allFacadeservice"
 			advice-ref="MysqlAdvice" />
 	</aop:config> 
-
-
 
 </beans>

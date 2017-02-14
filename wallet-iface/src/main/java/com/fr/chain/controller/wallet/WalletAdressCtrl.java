@@ -50,7 +50,7 @@ import com.fr.chain.web.action.BasicCtrl;
 
 @Slf4j
 @Controller
-@RequestMapping("/v1/walletadress")
+@RequestMapping("/walletadress/v1")
 public class WalletAdressCtrl extends BasicCtrl {
 	@Resource 
 	private HttpRequestHelper httpRequestHelper;
@@ -68,7 +68,7 @@ public class WalletAdressCtrl extends BasicCtrl {
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);
-			Object obj=walletService.processQueryWallet(inMsg);
+			Object obj=walletService.processGetWallet(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){

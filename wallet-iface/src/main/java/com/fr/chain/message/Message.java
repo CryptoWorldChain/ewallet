@@ -33,7 +33,7 @@ public class Message<T extends MsgBody> {
 	@JsonIgnore
 	private ArrayNode anDatas; // 数据信息-JsonNode
 
-	@JsonProperty(value = "Datas")
+	@JsonProperty(value = "datas")
 	List<T> bodyDatas = new ArrayList<T>(); // 数据信息--Body
 
 	public Message() {

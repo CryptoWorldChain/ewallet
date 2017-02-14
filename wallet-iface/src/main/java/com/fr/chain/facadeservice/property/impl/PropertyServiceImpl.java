@@ -21,6 +21,7 @@ import com.fr.chain.vo.trade.ChangePropertyVo;
 import com.fr.chain.vo.trade.GetPropertyVo;
 import com.fr.chain.vo.trade.SendPropertyVo;
 import com.fr.chain.enums.BaseStatusEnum;
+import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.facadeservice.property.PropertyService;
 import com.fr.chain.message.Message;
 import com.fr.chain.message.MsgBody;
@@ -32,6 +33,8 @@ import com.fr.chain.property.service.CreatePropertyService;
 import com.fr.chain.property.service.DelPropertyService;
 import com.fr.chain.property.service.QueryPropertyService;
 import com.fr.chain.property.service.UpdatePropertyService;
+import com.fr.chain.trade.db.entity.TradeOrder;
+import com.fr.chain.trade.service.CreateTradeOrderService;
 import com.fr.chain.utils.DateUtil;
 import com.fr.chain.utils.IDGenerator;
 import com.fr.chain.utils.NumberUtil;
@@ -44,15 +47,14 @@ public class PropertyServiceImpl implements PropertyService {
 
 	@Resource
 	CreatePropertyService  createPropertyService;
-	
 	@Resource
 	QueryPropertyService queryPropertyService;
-	
 	@Resource
 	DelPropertyService delPropertyService;
-	
 	@Resource
 	UpdatePropertyService updatePropertyService;
+	@Resource
+	CreateTradeOrderService createTradeOrderService;
 	
 
 
@@ -80,7 +82,6 @@ public class PropertyServiceImpl implements PropertyService {
 		try {
 			List<CreatePropertyVo> datas = msg.getBodyDatas();
 			if (datas != null && datas.size() > 0) {
-				List<Property> propertys = new ArrayList<Property>();				
 				for (CreatePropertyVo msgVo : datas) {
 					try{					
 						this.validNull(msgVo);
@@ -90,50 +91,54 @@ public class PropertyServiceImpl implements PropertyService {
 						property.setOpenId(msg.getOpenid()); 
 						property.setAppId(msg.getAppid());	
 						property.setProductId(msgVo.getProductid());
-						property.setPropertyType(msgVo.getPropertytype());						
+						property.setPropertyType(msgVo.getPropertytype());	
+						String address = ""; //钱包地址
 						Property tmpProperty = queryPropertyService.selectOneByExample(property);
-						if(tmpProperty!=null){//已经存在此资产(再次创建),不用生成地址,只需增加数量
+						if(tmpProperty!=null){
+							//已经存在此资产(再次创建),不用生成地址,只需增加数量
 							int nCount = NumberUtil.toInt(tmpProperty.getCount()) + NumberUtil.toInt(msgVo.getCount());	
 							tmpProperty.setCount(String.valueOf(nCount));
 							updatePropertyService.updateByPrimaryKey(tmpProperty);
-							//组装返回报文
-							res_CreatePropertyVo.setAddress(tmpProperty.getAddress());
-							res_CreatePropertyVo.setProductid(msgVo.getProductid());
-							res_CreatePropertyVo.setPropertytype(msgVo.getPropertytype());
-							resp.put(msgVo.getDatano(), res_CreatePropertyVo);
-							continue;
+							//获取返回地址
+							address = tmpProperty.getAddress();
+							
+							//创建订单
+							createTradeOrderService.insertTradeByProperty(tmpProperty, TradeTypeEnum.创建资产.getValue());
+							
+						}else{
+							//新增资产
+							property.setPropertyId(IDGenerator.nextID());//自动生成Id
+							property.setProductDesc(msgVo.getPropertytype());
+							property.setIsSelfSupport(msgVo.getIsselfsupport());
+							property.setIsDigit(msgVo.getIsdigit());
+							property.setProductDesc(msgVo.getProductdesc());
+							property.setSignType(msgVo.getSigntype());
+							property.setPropertyName(msgVo.getPropertyname());
+							property.setUnit(msgVo.getUnit());
+							property.setMinCount(msgVo.getMincount());
+							property.setCount(msgVo.getCount());
+							property.setUrl(msgVo.getUrl());
+							if(msgVo.getAmount()!=null){
+								property.setAmount(NumberUtil.toDouble(msgVo.getAmount()));
+							}						
+							property.setDescription(msgVo.getDescription());							
+							//调用底层区块链生成地址
+							address = IDGenerator.nextID();	//模拟生成地址							
+							property.setAddress(address);
+							property.setCreateTime(DateUtil.getSystemDate());
+							property.setOriginOpenid(msg.getOpenid());
+							property.setStatus(1);
+							createPropertyService.insert(property);
+							
+							//创建订单
+							createTradeOrderService.insertTradeByProperty(property, TradeTypeEnum.创建资产.getValue());
+							
 						}
-						//新增资产
-						property.setPropertyId(IDGenerator.nextID());//自动生成Id
-						property.setProductDesc(msgVo.getPropertytype());
-						property.setIsSelfSupport(msgVo.getIsselfsupport());
-						property.setIsDigit(msgVo.getIsdigit());
-						property.setProductDesc(msgVo.getProductdesc());
-						property.setSignType(msgVo.getSigntype());
-						property.setPropertyName(msgVo.getPropertyname());
-						property.setUnit(msgVo.getUnit());
-						property.setMinCount(msgVo.getMincount());
-						property.setCount(msgVo.getCount());
-						property.setUrl(msgVo.getUrl());
-						property.setAmount(Float.valueOf(msgVo.getAmount()));
-						property.setDescription(msgVo.getDescription());
 						
-						//调用底层区块链生成地址
-						String address = IDGenerator.nextID();	//模拟生成地址		
-						
-						property.setAddress(address);
-						property.setCreateTime(DateUtil.getSystemDate());
-						property.setOriginOpenid(msg.getOpenid());
-						property.setStatus(1);
-						
-						//添加
-						propertys.add(property);	
-						res_CreatePropertyVo.setProductid(msgVo.getProductid());
-						res_CreatePropertyVo.setPropertytype(msgVo.getPropertytype());
-						
-									
-						res_CreatePropertyVo.setAddress(address);
 						//设置返回报文
+						res_CreatePropertyVo.setProductid(msgVo.getProductid());
+						res_CreatePropertyVo.setPropertytype(msgVo.getPropertytype());		
+						res_CreatePropertyVo.setAddress(address);						
 						resp.put(msgVo.getDatano(), res_CreatePropertyVo);
 					}catch (NullPointerException ne) {
 						log.error("Create Account is failed:" + ne.getMessage(), ne);
@@ -148,10 +153,6 @@ public class PropertyServiceImpl implements PropertyService {
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
 					}
 				}
-				
-				//批量入库
-				createPropertyService.batchInsert(propertys);
-				
 			}
 		}		
 		catch (Exception e) {
@@ -167,6 +168,7 @@ public class PropertyServiceImpl implements PropertyService {
 		return msg.asResponse(resp);
 
 	}
+	
 	
 	@Override
 	public Message<MsgBody> processQueryProperty(Message<QueryPropertyVo> msg){
@@ -187,15 +189,30 @@ public class PropertyServiceImpl implements PropertyService {
 						property.setPropertyType(msgVo.getPropertytype());						
 						property.setProductId(msgVo.getProductid());
 						property.setPropertyType(msgVo.getPropertytype());	
-						property.setProductDesc(msgVo.getPropertytype());
 						property.setIsSelfSupport(msgVo.getIsselfsupport());
 						property.setSignType(msgVo.getSigntype());
 						List<Property> propertyList = queryPropertyService.selectByExample(property);
 						
 						Res_QueryPropertyVo res_QueryPropertyVo = new Res_QueryPropertyVo(msgVo.getDatano());
 						if(propertyList != null && propertyList.size()>0){ 
-							Property tmpProperty = propertyList.get(0);
-							BeanUtils.copyProperties(res_QueryPropertyVo, tmpProperty); //拷贝
+							for(Property tmpProperty : propertyList){
+								//BeanUtils.copyProperties(propertyInfo, tmpProperty); //拷贝
+								Res_QueryPropertyVo.PropertyInfo propertyInfo = new Res_QueryPropertyVo.PropertyInfo();
+								propertyInfo.setPropertytype(tmpProperty.getPropertyType());
+								propertyInfo.setIsselfsupport(tmpProperty.getIsSelfSupport());
+								propertyInfo.setProductid(tmpProperty.getProductId());
+								propertyInfo.setProductdesc(tmpProperty.getProductDesc());
+								propertyInfo.setIsdigit(tmpProperty.getIsDigit());
+								propertyInfo.setSigntype(tmpProperty.getSignType());
+								propertyInfo.setPropertyname(tmpProperty.getPropertyName());
+								propertyInfo.setUnit(tmpProperty.getUnit());
+								propertyInfo.setMincount(tmpProperty.getMinCount());
+								propertyInfo.setCount(tmpProperty.getCount());
+								propertyInfo.setUrl(tmpProperty.getUrl());
+								propertyInfo.setAmount(tmpProperty.getAmount());
+								propertyInfo.setDescription(tmpProperty.getDescription());
+								res_QueryPropertyVo.getPropertyInfoList().add(propertyInfo);
+							}
 						}
 						//设置返回报文
 						resp.put(msgVo.getDatano(), res_QueryPropertyVo);

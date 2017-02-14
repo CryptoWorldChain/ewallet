@@ -68,7 +68,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 	 * @param resp
 	 * @return
 	 */
-	@RequestMapping(value = "/querytradeOrder", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/querytradeOrder", method = RequestMethod.POST)
 	@ResponseBody
 	public Object queryTradeOrder(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);
@@ -98,7 +98,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 	 * @param resp
 	 * @return
 	 */
-	@RequestMapping(value = "/sendproperty", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/sendproperty", method = RequestMethod.POST)
 	@ResponseBody
 	public Object sendProperty(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);
@@ -128,7 +128,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 	 * @param resp
 	 * @return
 	 */
-	@RequestMapping(value = "/getproperty", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/getproperty", method = RequestMethod.POST)
 	@ResponseBody
 	public Object getProperty(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);
@@ -156,7 +156,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 	
 	
 	
-	@RequestMapping(value = "/changeproperty", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/changeproperty", method = RequestMethod.POST)
 	@ResponseBody
 	public Object changeProperty(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);

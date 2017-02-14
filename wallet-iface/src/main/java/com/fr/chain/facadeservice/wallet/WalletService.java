@@ -23,6 +23,6 @@ public interface WalletService {
 	
 	public int updateByExampleSelective (WalletAdress record, WalletAdressExample example);
 
-	public Message<MsgBody> processQueryWallet(Message<QueryWalletAdressVo> msg);
+	public Message<MsgBody> processGetWallet(Message<QueryWalletAdressVo> msg);
 	
 }

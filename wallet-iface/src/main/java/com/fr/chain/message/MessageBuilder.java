@@ -111,7 +111,7 @@ public class MessageBuilder {
 				//throw new MessageException("sign not correct:" + gpmsg.getSign());
 			}
 
-			ArrayNode an = (ArrayNode) on.findValue("Datas");
+			ArrayNode an = (ArrayNode) on.findValue("datas");
 			gpmsg.setAnDatas(an);
 
 			return gpmsg;

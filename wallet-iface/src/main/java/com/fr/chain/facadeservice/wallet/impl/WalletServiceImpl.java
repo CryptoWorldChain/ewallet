@@ -47,7 +47,7 @@ public class WalletServiceImpl implements WalletService {
 	
 
 
-	private void buildQueryWalletBody(Message<QueryWalletAdressVo> gpmsg) {
+	private void buildGetWalletBody(Message<QueryWalletAdressVo> gpmsg) {
 		List<QueryWalletAdressVo> bodys = new ArrayList<>();
 		for (JsonNode node : gpmsg.getAnDatas()) {
 			bodys.add(JsonUtil.json2Bean(node, QueryWalletAdressVo.class));
@@ -57,14 +57,13 @@ public class WalletServiceImpl implements WalletService {
 	
 
 	@Override
-	public Message<MsgBody> processQueryWallet(Message<QueryWalletAdressVo> msg) {
+	public Message<MsgBody> processGetWallet(Message<QueryWalletAdressVo> msg) {
 		log.debug("Create property msg:" + msg);
-		buildQueryWalletBody(msg);
+		buildGetWalletBody(msg);
 		Map<String,MsgBody> resp = new LinkedHashMap<String, MsgBody>();
 		try {
 			List<QueryWalletAdressVo> datas = msg.getBodyDatas();
 			if (datas != null && datas.size() > 0) {
-				List<WalletAdress> walletAdresslist = new ArrayList<WalletAdress>();				
 				for (QueryWalletAdressVo msgVo : datas) {
 					try{					
 						this.validNull(msgVo);
@@ -76,15 +75,15 @@ public class WalletServiceImpl implements WalletService {
 						//调用底层区块链生成地址
 						String address = "";	
 						
-						List<WalletAdress> walletAdressList = queryWalletAdressService.selectByExample(walletAdress);
+						WalletAdress tmpWalletAdress = queryWalletAdressService.selectOneByExample(walletAdress);
 						//如果已经存在则返回钱包地址，否则创建地址
-						if(walletAdressList!=null && walletAdressList.size()>0){
-							address = walletAdressList.get(0).getWalletAddress();
+						if(tmpWalletAdress!=null){
+							address = tmpWalletAdress.getWalletAddress();
 						}else{
 							address = "aaaa";  //调用底层chain
 							//新建的钱包地址需要存入数据库
 							walletAdress.setWalletAddress(address);
-							walletAdresslist.add(walletAdress);
+							createWalletAdressService.insert(walletAdress);
 						}
 						
 						Res_QueryWalletAdressVo res_queryWalletAdressVo =new Res_QueryWalletAdressVo(msgVo.getDatano());
@@ -106,12 +105,6 @@ public class WalletServiceImpl implements WalletService {
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
 					}
 				}
-				
-				//批量入库
-				if(walletAdresslist.size()>0){
-					createWalletAdressService.batchInsert(walletAdresslist);
-				}
-				
 			}
 		}		
 		catch (Exception e) {

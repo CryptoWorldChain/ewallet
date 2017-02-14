@@ -48,7 +48,7 @@ import com.fr.chain.web.action.BasicCtrl;
 
 @Slf4j
 @Controller
-@RequestMapping("/v1")
+@RequestMapping("/property")
 public class PropertyCtrl extends BasicCtrl {
 	@Resource
 	HttpRequestHelper httpRequestHelper;
@@ -59,7 +59,7 @@ public class PropertyCtrl extends BasicCtrl {
 	private static DataService mysqlDataService = 
 			(DataService)BeanFactory.getBean("mysqlDataService");
 	
-	@RequestMapping(value = "/createproperty", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/createproperty", method = RequestMethod.POST)
 	@ResponseBody
 	public Object createProperty(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);	      
@@ -82,7 +82,7 @@ public class PropertyCtrl extends BasicCtrl {
 		}
 	}
 	
-	@RequestMapping(value = "/queryproperty", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/queryproperty", method = RequestMethod.POST)
 	@ResponseBody
 	public Object queryProperty(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);	      
@@ -104,25 +104,6 @@ public class PropertyCtrl extends BasicCtrl {
 			return new ReturnInfo(e.getMessage(), 0, null,false);
 		}
 	}
-	
-	
-	
-	
-	/*
-	 * 增加资产
-	 */
-	@RequestMapping(value="1.0",method=RequestMethod.POST)
-	@ResponseBody
-	public ReturnInfo create(@Valid @RequestBody Property info,HttpServletRequest req) {
-		try {
-			propertyService.insert(info);
-			return ReturnInfo.Success;
-		} catch (Exception e) {
-			log.warn("PropertyCtrl insert error..",e);
-		}
-		return ReturnInfo.Faild;
-	}
-	
 	
 	
 	
