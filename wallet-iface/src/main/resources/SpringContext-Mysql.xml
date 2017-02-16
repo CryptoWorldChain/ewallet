@@ -36,10 +36,14 @@
 
  	<tx:advice id="MysqlAdvice" transaction-manager="transactionManager">
 		<tx:attributes>
-			<tx:method name="*elete*" propagation="REQUIRED" rollback-for="Throwable" />
+			<!-- <tx:method name="*elete*" propagation="REQUIRED" rollback-for="Throwable" />
 			<tx:method name="*pdate*" propagation="REQUIRED" rollback-for="Throwable" />
 			<tx:method name="*nsert*" propagation="REQUIRED" rollback-for="Throwable" />
-			<tx:method name="*reate*" propagation="REQUIRED" rollback-for="Throwable" />
+			<tx:method name="*reate*" propagation="REQUIRED" rollback-for="Throwable" /> -->
+			<tx:method name="*elete*" propagation="REQUIRED" />
+			<tx:method name="*pdate*" propagation="REQUIRED" />
+			<tx:method name="*nsert*" propagation="REQUIRED" />
+			<tx:method name="*reate*" propagation="REQUIRED" />
 		</tx:attributes>
 	</tx:advice> 
 

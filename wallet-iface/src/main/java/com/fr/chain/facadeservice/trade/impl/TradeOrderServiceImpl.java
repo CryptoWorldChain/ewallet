@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fr.chain.vo.trade.ChangePropertyVo;
 import com.fr.chain.vo.trade.GetPropertyVo;
@@ -57,6 +58,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	
 	
 	@Override
+	@Transactional(rollbackFor=Exception.class)
 	public void queryAndCreateTradeOrder(Message msg, QueryTradeOrderVo msgVo, Res_QueryTradeOrderVo res_QueryTradeOrderVo ){
 		TradeOrder tradeOrder= new TradeOrder();
 		tradeOrder.setMerchantId(msg.getMerchantid());
@@ -92,6 +94,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	}
 	
 	@Override
+	@Transactional(rollbackFor=Exception.class)
 	public void sendAndCreateProperty(Message msg, SendPropertyVo msgVo, Res_SendPropertyVo res_SendPropertyVo ){
 		Property property= new Property();
 		property.setMerchantId(msg.getMerchantid());
@@ -145,6 +148,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	}
 	
 	@Override
+	@Transactional(rollbackFor=Exception.class)
 	public void getAndCreateProperty(Message msg, GetPropertyVo msgVo, ResponseMsg responseMsg  ){
 		Property property= new Property();
 		property.setMerchantId(msg.getMerchantid());
@@ -180,6 +184,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	
 	
 	@Override
+	@Transactional(rollbackFor=Exception.class)
 	public void changeAndDeleteProperty(Message msg, ChangePropertyVo msgVo, ResponseMsg responseMsg){
 		Property property= new Property();
 		property.setMerchantId(msg.getMerchantid());
