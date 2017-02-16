@@ -21,6 +21,11 @@ public class CreateWalletAdressImpl implements CreateWalletAdressService {
 	public	int insert(WalletAdress info){
 		return walletAdressDao.insert(info);			
 	}
+	
+	@Override
+	public int insertSelective(WalletAdress record){
+		return walletAdressDao.insertSelective(record);
+	}
 
 	@Override
 	public int batchInsert(List<WalletAdress> records){
