@@ -54,9 +54,11 @@ public class TradeOrderCtrl extends BasicCtrl {
 	@Resource 
 	private HttpRequestHelper httpRequestHelper;
 	@Resource
-	private PropertyService propertyService;	
+	private ProcessTradeMsg processTradeMsg;
 	@Resource
 	private TradeOrderService tradeOrderService;
+	@Resource
+	private PropertyService propertyService;	
 	
 	private static DataService mysqlDataService = (DataService) BeanFactory
 			.getBean("mysqlDataService");	
@@ -75,7 +77,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);		
-			Object obj=tradeOrderService.processQueryTradeOrder(inMsg);
+			Object obj=processTradeMsg.processQueryTradeOrder(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){
@@ -105,7 +107,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);			
-			Object obj=tradeOrderService.processSendProperty(inMsg);
+			Object obj=processTradeMsg.processSendProperty(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){
@@ -135,7 +137,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);		
-			Object obj=tradeOrderService.processGetProperty(inMsg);
+			Object obj=processTradeMsg.processGetProperty(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){
@@ -155,7 +157,12 @@ public class TradeOrderCtrl extends BasicCtrl {
 	
 	
 	
-	
+	/**
+	 * 消费或者丢弃
+	 * @param req
+	 * @param resp
+	 * @return
+	 */
 	@RequestMapping(value = "/v1_00/changeproperty", method = RequestMethod.POST)
 	@ResponseBody
 	public Object changeProperty(HttpServletRequest req, HttpServletResponse resp)  {
@@ -163,7 +170,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);			
-			Object obj=tradeOrderService.processChangeProperty(inMsg);
+			Object obj=processTradeMsg.processChangeProperty(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){

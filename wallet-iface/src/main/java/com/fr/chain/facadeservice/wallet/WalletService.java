@@ -8,6 +8,7 @@ import com.fr.chain.ewallet.db.entity.WalletAdress;
 import com.fr.chain.ewallet.db.entity.WalletAdressExample;
 import com.fr.chain.ewallet.db.entity.WalletAdressKey;
 import com.fr.chain.vo.wallet.QueryWalletAdressVo;
+import com.fr.chain.vo.wallet.Res_QueryWalletAdressVo;
 
 public interface WalletService {
 	
@@ -23,6 +24,6 @@ public interface WalletService {
 	
 	public int updateByExampleSelective (WalletAdress record, WalletAdressExample example);
 
-	public Message<MsgBody> processGetWallet(Message<QueryWalletAdressVo> msg);
+	public void getAndCreateWallet(Message msg, QueryWalletAdressVo msgVo, Res_QueryWalletAdressVo res_QueryWalletAdressVo);
 	
 }

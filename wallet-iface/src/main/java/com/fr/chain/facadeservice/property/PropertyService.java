@@ -3,15 +3,13 @@ package com.fr.chain.facadeservice.property;
 import java.util.List;
 
 import com.fr.chain.message.Message;
-import com.fr.chain.message.MsgBody;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.property.db.entity.PropertyExample;
 import com.fr.chain.property.db.entity.PropertyKey;
 import com.fr.chain.vo.property.CreatePropertyVo;
 import com.fr.chain.vo.property.QueryPropertyVo;
-import com.fr.chain.vo.trade.ChangePropertyVo;
-import com.fr.chain.vo.trade.GetPropertyVo;
-import com.fr.chain.vo.trade.SendPropertyVo;
+import com.fr.chain.vo.property.Res_CreatePropertyVo;
+import com.fr.chain.vo.property.Res_QueryPropertyVo;
 
 public interface PropertyService {
 	
@@ -28,7 +26,8 @@ public interface PropertyService {
 	public int updateByExampleSelective (Property record, PropertyExample example);
 	
 
-	public Message<MsgBody> processCreateProperty(Message<CreatePropertyVo> msg);
-	public Message<MsgBody> processQueryProperty(Message<QueryPropertyVo> msg);
+	public void createProperty(Message msg, CreatePropertyVo msgVo, Res_CreatePropertyVo res_CreatePropertyVo);
+	public void queryProperty(Message msg, QueryPropertyVo msgVo, Res_QueryPropertyVo res_QueryPropertyVo);
+
 	
 }

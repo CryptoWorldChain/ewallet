@@ -1,7 +1,5 @@
 package com.fr.chain.controller.wallet;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,25 +48,32 @@ import com.fr.chain.web.action.BasicCtrl;
 
 @Slf4j
 @Controller
-@RequestMapping("/walletadress/v1")
+@RequestMapping("/walletadress")
 public class WalletAdressCtrl extends BasicCtrl {
 	@Resource 
 	private HttpRequestHelper httpRequestHelper;
 	@Resource
-	WalletService walletService;
+	private WalletService walletService;
+	@Resource
+	private ProcessWalletAdressMsg processWalletAdressMsg;
 	
 	private static DataService mysqlDataService = 
 			(DataService)BeanFactory.getBean("mysqlDataService");
 	
-	
-	@RequestMapping(value = "/getWalletAdress", method = RequestMethod.POST)
+	/**
+	 * 获取钱包地址
+	 * @param req
+	 * @param resp
+	 * @return
+	 */
+	@RequestMapping(value = "/v1_00/getwalletadress", method = RequestMethod.POST)
 	@ResponseBody
 	public Object getWalletAdress(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);
-			Object obj=walletService.processGetWallet(inMsg);
+			Object obj = processWalletAdressMsg.processGetWallet(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){

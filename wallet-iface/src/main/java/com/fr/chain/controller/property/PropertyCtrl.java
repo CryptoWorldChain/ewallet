@@ -52,7 +52,8 @@ import com.fr.chain.web.action.BasicCtrl;
 public class PropertyCtrl extends BasicCtrl {
 	@Resource
 	HttpRequestHelper httpRequestHelper;
-	
+	@Resource
+	ProcessPropertyMsg ProcessPropertyMsg;
 	@Resource
 	PropertyService propertyService;
 	
@@ -66,7 +67,7 @@ public class PropertyCtrl extends BasicCtrl {
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);
-			Object obj=propertyService.processCreateProperty(inMsg);
+			Object obj=ProcessPropertyMsg.processCreateProperty(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){
@@ -89,7 +90,7 @@ public class PropertyCtrl extends BasicCtrl {
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);
-			Object obj=propertyService.processQueryProperty(inMsg);
+			Object obj=ProcessPropertyMsg.processQueryProperty(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){
