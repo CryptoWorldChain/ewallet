@@ -1,21 +1,13 @@
 package com.fr.chain.facadeservice.trade.impl;
 
 import java.util.List;
-import java.lang.IllegalArgumentException;
 
 import javax.annotation.Resource;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.fr.chain.vo.trade.ChangePropertyVo;
-import com.fr.chain.vo.trade.GetPropertyVo;
-import com.fr.chain.vo.trade.QueryTradeOrderVo;
-import com.fr.chain.vo.trade.Res_QueryTradeOrderVo;
-import com.fr.chain.vo.trade.Res_SendPropertyVo;
-import com.fr.chain.vo.trade.SendPropertyVo;
 import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.facadeservice.trade.TradeOrderService;
 import com.fr.chain.message.Message;
@@ -35,6 +27,12 @@ import com.fr.chain.trade.service.UpdateTradeOrderService;
 import com.fr.chain.utils.DateUtil;
 import com.fr.chain.utils.IDGenerator;
 import com.fr.chain.utils.NumberUtil;
+import com.fr.chain.vo.trade.ChangePropertyVo;
+import com.fr.chain.vo.trade.GetPropertyVo;
+import com.fr.chain.vo.trade.QueryTradeOrderVo;
+import com.fr.chain.vo.trade.Res_QueryTradeOrderVo;
+import com.fr.chain.vo.trade.Res_SendPropertyVo;
+import com.fr.chain.vo.trade.SendPropertyVo;
 
 @Slf4j
 @Service("tradeOrderService")
@@ -58,7 +56,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	
 	
 	@Override
-	@Transactional(rollbackFor=Exception.class)
 	public void queryAndCreateTradeOrder(Message msg, QueryTradeOrderVo msgVo, Res_QueryTradeOrderVo res_QueryTradeOrderVo ){
 		TradeOrder tradeOrder= new TradeOrder();
 		tradeOrder.setMerchantId(msg.getMerchantid());
@@ -94,7 +91,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	}
 	
 	@Override
-	@Transactional(rollbackFor=Exception.class)
 	public void sendAndCreateProperty(Message msg, SendPropertyVo msgVo, Res_SendPropertyVo res_SendPropertyVo ){
 		Property property= new Property();
 		property.setMerchantId(msg.getMerchantid());
@@ -148,7 +144,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	}
 	
 	@Override
-	@Transactional(rollbackFor=Exception.class)
 	public void getAndCreateProperty(Message msg, GetPropertyVo msgVo, ResponseMsg responseMsg  ){
 		Property property= new Property();
 		property.setMerchantId(msg.getMerchantid());
@@ -184,7 +179,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	
 	
 	@Override
-	@Transactional(rollbackFor=Exception.class)
 	public void changeAndDeleteProperty(Message msg, ChangePropertyVo msgVo, ResponseMsg responseMsg){
 		Property property= new Property();
 		property.setMerchantId(msg.getMerchantid());

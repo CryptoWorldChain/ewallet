@@ -17,6 +17,7 @@ import com.fr.chain.facadeservice.property.PropertyService;
 import com.fr.chain.message.Message;
 import com.fr.chain.message.MsgBody;
 import com.fr.chain.message.ResponseMsg;
+import com.fr.chain.utils.BeanFactory;
 import com.fr.chain.utils.JsonUtil;
 import com.fr.chain.utils.StringUtil;
 import com.fr.chain.vo.property.CreatePropertyVo;
@@ -28,9 +29,9 @@ import com.fr.chain.vo.property.Res_QueryPropertyVo;
 @Slf4j
 @Component
 public class ProcessPropertyMsg {
-	@Resource
+    @Resource
 	private PropertyService propertyService;
-
+    
 	private void buildCreatePropertyBody(Message<CreatePropertyVo> gpmsg) {
 		List<CreatePropertyVo> bodys = new ArrayList<>();
 		for (JsonNode node : gpmsg.getAnDatas()) {

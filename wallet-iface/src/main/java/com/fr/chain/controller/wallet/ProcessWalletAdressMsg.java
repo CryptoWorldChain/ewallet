@@ -17,6 +17,7 @@ import com.fr.chain.facadeservice.wallet.WalletService;
 import com.fr.chain.message.Message;
 import com.fr.chain.message.MsgBody;
 import com.fr.chain.message.ResponseMsg;
+import com.fr.chain.utils.BeanFactory;
 import com.fr.chain.utils.JsonUtil;
 import com.fr.chain.utils.StringUtil;
 import com.fr.chain.vo.wallet.QueryWalletAdressVo;
@@ -28,7 +29,7 @@ import com.fr.chain.vo.wallet.Res_QueryWalletAdressVo;
 public class ProcessWalletAdressMsg {
 	
 	@Resource
-	private WalletService walletService;
+	private WalletService walletService; 
 	
 	private void buildGetWalletBody(Message<QueryWalletAdressVo> gpmsg) {
 		List<QueryWalletAdressVo> bodys = new ArrayList<>();

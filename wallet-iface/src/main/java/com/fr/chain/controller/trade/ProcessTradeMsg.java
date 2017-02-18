@@ -17,6 +17,7 @@ import com.fr.chain.facadeservice.trade.TradeOrderService;
 import com.fr.chain.message.Message;
 import com.fr.chain.message.MsgBody;
 import com.fr.chain.message.ResponseMsg;
+import com.fr.chain.utils.BeanFactory;
 import com.fr.chain.utils.JsonUtil;
 import com.fr.chain.utils.StringUtil;
 import com.fr.chain.vo.trade.ChangePropertyVo;
@@ -32,8 +33,7 @@ import com.fr.chain.vo.trade.SendPropertyVo;
 public class ProcessTradeMsg {
 	@Resource
 	private TradeOrderService tradeOrderService;
-
-
+	
 	private void buildQueryTradeOrderBody(Message<QueryTradeOrderVo> gpmsg) {
 		List<QueryTradeOrderVo> bodys = new ArrayList<>();
 		for (JsonNode node : gpmsg.getAnDatas()) {
