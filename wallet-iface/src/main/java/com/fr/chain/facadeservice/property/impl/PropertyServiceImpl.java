@@ -47,6 +47,7 @@ public class PropertyServiceImpl implements PropertyService {
 	/**
 	 * 创建资产
 	 */
+	@Override
 	public void createProperty(Message msg, CreatePropertyVo msgVo, Res_CreatePropertyVo res_CreatePropertyVo ) {
 		Property property= new Property();						
 		property.setMerchantId(msg.getMerchantid());
@@ -107,6 +108,7 @@ public class PropertyServiceImpl implements PropertyService {
 	/**
 	 * 查询资产
 	 */
+	@Override
 	public void queryProperty(Message msg, QueryPropertyVo msgVo, Res_QueryPropertyVo res_QueryPropertyVo ){
 		Property property= new Property();
 		property.setMerchantId(msg.getMerchantid());
