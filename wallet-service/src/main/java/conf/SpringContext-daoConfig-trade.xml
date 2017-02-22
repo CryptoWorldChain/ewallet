@@ -13,5 +13,9 @@
 		<property name="mapperInterface" value="com.fr.chain.trade.db.mapper.TradeOrderMapper" />
 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
 	</bean>
+	<bean id="tradeFlowMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="com.fr.chain.trade.db.mapper.TradeFlowMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
 	
 </beans>
