@@ -1,5 +1,6 @@
 package com.fr.chain.vo.property;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class Res_QueryPropertyVo extends MsgBody{
 		private String mincount;
 		private String count;
 		private String url;
-		private Double amount;
+		private BigDecimal amount;
 		private String description;		
 	}
 	

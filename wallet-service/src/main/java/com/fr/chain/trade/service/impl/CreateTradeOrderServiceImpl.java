@@ -7,7 +7,9 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import com.fr.chain.property.db.entity.Property;
+import com.fr.chain.trade.db.dao.TradeFlowDao;
 import com.fr.chain.trade.db.dao.TradeOrderDao;
+import com.fr.chain.trade.db.entity.TradeFlow;
 import com.fr.chain.trade.db.entity.TradeOrder;
 import com.fr.chain.trade.service.CreateTradeOrderService;
 import com.fr.chain.utils.DateUtil;
@@ -18,7 +20,8 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 	
 	@Resource 
 	TradeOrderDao tradeOrderDao;
-	
+	@Resource
+	TradeFlowDao tradeFlowDao;
 	
 	@Override
 	public	int insert(TradeOrder info){
@@ -65,4 +68,49 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		return tradeOrderDao.insertSelective(tradeOrder);			
 	}
 	
+	
+	@Override
+	public	int insertFlow(TradeFlow info){
+		return tradeFlowDao.insert(info);			
+	}
+	
+	@Override
+	public int insertFlowSelective(TradeFlow record ){
+		return tradeFlowDao.insertSelective(record);	
+	}
+
+	@Override
+	public int batchInsertFlow(List<TradeFlow> records){
+		return tradeFlowDao.batchInsert(records);
+	}
+	
+	public	int insertTradeFlowByOrder(TradeOrder orderRecord){
+		//创建流水
+		TradeFlow tradeFlow = new TradeFlow();
+		tradeFlow.setFlowId(IDGenerator.nextID());
+		tradeFlow.setOrderId(orderRecord.getOrderId());
+		tradeFlow.setMerchantId(orderRecord.getMerchantId());
+		tradeFlow.setAppId(orderRecord.getAppId());
+		tradeFlow.setOpenId(orderRecord.getOpenId());
+		tradeFlow.setTallyTag(1);//1+;0-
+		tradeFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		tradeFlow.setProductId(orderRecord.getProductId());
+		tradeFlow.setPropertyType(orderRecord.getPropertyType());
+		tradeFlow.setIsSelfSupport(orderRecord.getIsSelfSupport());
+		tradeFlow.setProductDesc(orderRecord.getProductDesc());
+		tradeFlow.setIsDigit(orderRecord.getIsDigit());
+		tradeFlow.setSigntype(orderRecord.getSigntype());
+		tradeFlow.setPropertyName(orderRecord.getPropertyName());
+		tradeFlow.setUnit(orderRecord.getUnit());
+		tradeFlow.setMincount(orderRecord.getMincount());
+		tradeFlow.setCount(orderRecord.getCount());
+		tradeFlow.setUrl(orderRecord.getUrl());
+		tradeFlow.setAmount(orderRecord.getAmount());
+		tradeFlow.setDescription(orderRecord.getDescription());
+		tradeFlow.setAddress(orderRecord.getAddress());
+		tradeFlow.setTradeType(orderRecord.getTradeType());
+		tradeFlow.setCreateTime(DateUtil.getSystemDate());
+		
+		return tradeFlowDao.insertSelective(tradeFlow);			
+	}
 }

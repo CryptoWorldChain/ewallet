@@ -1,5 +1,6 @@
 package com.fr.chain.facadeservice.property.impl;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -22,6 +23,7 @@ import com.fr.chain.property.service.CreatePropertyService;
 import com.fr.chain.property.service.DelPropertyService;
 import com.fr.chain.property.service.QueryPropertyService;
 import com.fr.chain.property.service.UpdatePropertyService;
+import com.fr.chain.trade.db.entity.TradeOrder;
 import com.fr.chain.trade.service.CreateTradeOrderService;
 import com.fr.chain.utils.DateUtil;
 import com.fr.chain.utils.IDGenerator;
@@ -49,46 +51,54 @@ public class PropertyServiceImpl implements PropertyService {
 	 */
 	@Override
 	public void createProperty(Message msg, CreatePropertyVo msgVo, Res_CreatePropertyVo res_CreatePropertyVo ) {
-		Property property= new Property();						
-
-		property.setPropertyId(IDGenerator.nextID());//自动生成Id
-		property.setMerchantId(msg.getMerchantid());
-		property.setAppId(msg.getAppid());	
-		property.setOpenId(msg.getOpenid()); 
-		property.setProductId(msgVo.getProductid());
-		property.setPropertyType(msgVo.getPropertytype());	
-		//模拟生成地址
-		String address = ""; //钱包地址
-		address = IDGenerator.nextID();								
-		property.setAddress(address);
-		property.setOriginOpenid(msg.getOpenid());
-		property.setIsSelfSupport(msgVo.getIsselfsupport());
-		property.setProductDesc(msgVo.getProductdesc());
-		property.setIsDigit(msgVo.getIsdigit());
-		property.setSignType(msgVo.getSigntype());
-		property.setPropertyName(msgVo.getPropertyname());
-		property.setUnit(msgVo.getUnit());
-		property.setMinCount(msgVo.getMincount());
-		property.setCount(msgVo.getCount());
-		property.setUrl(msgVo.getUrl());
-		if(msgVo.getAmount()!=null){
-			property.setAmount(NumberUtil.toDouble(msgVo.getAmount()));
-		}						
-		property.setDescription(msgVo.getDescription());							
-		//调用底层区块链生成地址
-		property.setCreateTime(DateUtil.getSystemDate());
-		property.setStatus(1);
 		
-		//新增资产
-		createPropertyService.insert(property);
-			
-		//创建订单
-		createTradeOrderService.insertTradeByProperty(property, TradeTypeEnum.创建资产.getValue());
+		//模拟生成地址,调用底层区块链生成地址
+		String address = ""; //钱包地址
+		address = IDGenerator.nextID();
+				
+				
+		//生成新的订单
+		String orderId = IDGenerator.nextID();
+		TradeOrder orderRecord =  new TradeOrder();
+		orderRecord.setOrderId(orderId);
+		orderRecord.setMerchantId(msg.getMerchantid());
+		orderRecord.setAppId(msg.getAppid());
+		orderRecord.setOpenId("");
+		orderRecord.setFromOpenId("");
+		orderRecord.setToOpenId(msg.getOpenid());
+		orderRecord.setOriginOpenid(msg.getOpenid());
+		orderRecord.setProductId(msgVo.getProductid());
+		orderRecord.setPropertyType(msgVo.getPropertytype());
+		orderRecord.setIsSelfSupport(msgVo.getIsselfsupport());
+		orderRecord.setSigntype(msgVo.getSigntype());
+		orderRecord.setPropertyName(msgVo.getPropertyname());
+		orderRecord.setUnit(msgVo.getUnit());
+		orderRecord.setMincount(msgVo.getMincount());
+		orderRecord.setCount(msgVo.getCount());
+		orderRecord.setUrl(msgVo.getUrl());
+		if(msgVo.getAmount()!=null){
+			orderRecord.setAmount(new BigDecimal(msgVo.getAmount()));
+		}
+		orderRecord.setDescription(msgVo.getDescription());
+		orderRecord.setAddress(address);
+		orderRecord.setCreateTime(DateUtil.getSystemDate());
+		orderRecord.setTradeType(1);
+		orderRecord.setStatus(1);
+		
+		//插入新的订单
+		createTradeOrderService.insert(orderRecord);
+		
+		//插入新的流水
+		createTradeOrderService.insertTradeFlowByOrder(orderRecord);
+		
+		//插入新的资产
+		createPropertyService.inserPropertyByOrder(orderRecord);
 		
 		//设置返回报文
 		res_CreatePropertyVo.setProductid(msgVo.getProductid());
 		res_CreatePropertyVo.setPropertytype(msgVo.getPropertytype());		
 		res_CreatePropertyVo.setAddress(address);
+		res_CreatePropertyVo.setOrderId(orderId);
 	}
 	
 	
