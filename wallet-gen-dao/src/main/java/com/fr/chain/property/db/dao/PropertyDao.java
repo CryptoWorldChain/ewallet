@@ -144,6 +144,9 @@ public class PropertyDao implements StaticTableDaoSupport<Property, PropertyExam
 							if(record.getPropertyId()!=null){
 				criteria.andPropertyIdEqualTo(record.getPropertyId());
 				}
+				if(record.getOrderId()!=null){
+				criteria.andOrderIdEqualTo(record.getOrderId());
+				}
 				if(record.getMerchantId()!=null){
 				criteria.andMerchantIdEqualTo(record.getMerchantId());
 				}
