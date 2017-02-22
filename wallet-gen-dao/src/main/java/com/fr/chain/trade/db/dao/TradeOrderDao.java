@@ -153,6 +153,12 @@ public class TradeOrderDao implements StaticTableDaoSupport<TradeOrder, TradeOrd
 				if(record.getOpenId()!=null){
 				criteria.andOpenIdEqualTo(record.getOpenId());
 				}
+				if(record.getFromOpenId()!=null){
+				criteria.andFromOpenIdEqualTo(record.getFromOpenId());
+				}
+				if(record.getToOpenId()!=null){
+				criteria.andToOpenIdEqualTo(record.getToOpenId());
+				}
 				if(record.getOriginOpenid()!=null){
 				criteria.andOriginOpenidEqualTo(record.getOriginOpenid());
 				}
@@ -198,11 +204,17 @@ public class TradeOrderDao implements StaticTableDaoSupport<TradeOrder, TradeOrd
 				if(record.getAddress()!=null){
 				criteria.andAddressEqualTo(record.getAddress());
 				}
-				if(record.getTradeType()!=null){
-				criteria.andTradeTypeEqualTo(record.getTradeType());
+				if(record.getUpdateTime()!=null){
+				criteria.andUpdateTimeEqualTo(record.getUpdateTime());
 				}
 				if(record.getCreateTime()!=null){
 				criteria.andCreateTimeEqualTo(record.getCreateTime());
+				}
+				if(record.getTradeType()!=null){
+				criteria.andTradeTypeEqualTo(record.getTradeType());
+				}
+				if(record.getStatus()!=null){
+				criteria.andStatusEqualTo(record.getStatus());
 				}
 
 		}
