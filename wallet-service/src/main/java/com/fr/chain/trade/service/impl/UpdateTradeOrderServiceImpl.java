@@ -21,4 +21,8 @@ public class UpdateTradeOrderServiceImpl implements UpdateTradeOrderService {
 		return tradeOrderDao.updateByExampleSelective(record, example);			
 	}
 
+	@Override
+	public int updateTradeOrder(TradeOrder record){
+		return tradeOrderDao.updateByPrimaryKey(record);
+	}
 }

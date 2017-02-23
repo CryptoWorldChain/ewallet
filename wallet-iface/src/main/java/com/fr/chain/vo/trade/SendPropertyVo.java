@@ -20,6 +20,7 @@ public class SendPropertyVo extends MsgBody{
 		
 		private String count;
 
+		private String isDigit;
 		public PackageData(){
 			
 		}

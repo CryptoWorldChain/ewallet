@@ -1,12 +1,12 @@
 package com.fr.chain.property.service.impl;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.fr.chain.enums.PropertyStatusEnum;
 import com.fr.chain.property.db.dao.PropertyDao;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.property.service.CreatePropertyService;
@@ -42,7 +42,7 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 		property.setMerchantId(orderRecord.getMerchantId());
 		property.setAppId(orderRecord.getAppId());	
 		property.setOpenId(orderRecord.getOpenId()); 
-		property.setProductId(orderRecord.getProductDesc());
+		property.setProductId(orderRecord.getProductId());
 		property.setPropertyType(orderRecord.getPropertyType());	
 		//模拟生成地址
 		String address = ""; //钱包地址
@@ -66,5 +66,40 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 		property.setCreateTime(DateUtil.getSystemDate());
 		property.setStatus(1);
 		return propertyDao.insert(property);
+	}
+	/**
+	 * 通过订单插入资产，资产发送接口，资产待激活(等chain返回结果)
+	 */
+	@Override
+	public boolean inserPropertyFreezen(TradeOrder orderRecord,int srcCount,String srcAddress,int receCount,String receAddress){
+		//srcCount等于0，原有商品资产全部送出
+		//srcCount非0，原有商品资产有剩余
+		if(srcCount!=0){
+			Property srcProperty = new Property();
+			srcProperty.setPropertyId(IDGenerator.nextID());
+			srcProperty.setOrderId(orderRecord.getOrderId());
+			srcProperty.setMerchantId(orderRecord.getMerchantId());
+			srcProperty.setAppId(orderRecord.getAppId());
+			srcProperty.setOpenId(orderRecord.getOpenId());
+			srcProperty.setProductId(orderRecord.getProductId());
+			srcProperty.setAddress(srcAddress);
+			srcProperty.setCount(srcCount+"");
+			srcProperty.setStatus(PropertyStatusEnum.锁定.getValue());
+			propertyDao.insert(srcProperty);
+		}
+		Property sysProperty = new Property();
+		sysProperty.setPropertyId(IDGenerator.nextID());
+		sysProperty.setOrderId(orderRecord.getOrderId());
+		sysProperty.setMerchantId(orderRecord.getMerchantId());
+		sysProperty.setAppId(orderRecord.getAppId());
+		sysProperty.setOpenId("OpenId_sys");
+		sysProperty.setProductId(orderRecord.getProductId());
+		sysProperty.setAddress(receAddress);
+		sysProperty.setCount(receCount+"");
+		sysProperty.setStatus(PropertyStatusEnum.锁定.getValue());
+		
+		propertyDao.insert(sysProperty);
+		
+		return true;
 	}
 }

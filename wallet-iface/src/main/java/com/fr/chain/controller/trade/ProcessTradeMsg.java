@@ -268,7 +268,7 @@ public class ProcessTradeMsg {
 		for(GetPropertyVo.PackageData data: dataList){
 			if(StringUtil.isBlank(data.getProductid())) throw new NullPointerException(String.format(error,"productid"));
 			if(StringUtil.isBlank(data.getCount())) throw new NullPointerException(String.format(error,"count"));
-			if(StringUtil.isBlank(data.getAddress())) throw new NullPointerException(String.format(error,"address"));
+			if(StringUtil.isBlank(data.getOrderId())) throw new NullPointerException(String.format(error,"address"));
 			if(StringUtil.isBlank(data.getOwner())) throw new NullPointerException(String.format(error,"owner"));
 		}
 	}

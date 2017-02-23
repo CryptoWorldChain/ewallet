@@ -113,4 +113,74 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		
 		return tradeFlowDao.insertSelective(tradeFlow);			
 	}
+	
+	/**
+	 * 发送资产流水创建。
+	 * 1，发送发减少资产流水
+	 * 2，系统临时增加资产流水
+	 */
+	@Override
+	public boolean insertFlow4Sent(TradeOrder orderRecord){
+		
+		TradeFlow srcFlow = new TradeFlow();
+		srcFlow.setFlowId(IDGenerator.nextID());
+		srcFlow.setOrderId(orderRecord.getOrderId());
+		srcFlow.setOpenId(orderRecord.getOpenId());
+		srcFlow.setMerchantId(orderRecord.getMerchantId());
+		srcFlow.setAppId(orderRecord.getAppId());
+		srcFlow.setProductId(orderRecord.getProductId());
+		srcFlow.setTallyTag(0);
+		srcFlow.setCount(orderRecord.getCount());
+		srcFlow.setTradeType(2);
+		srcFlow.setCreateTime(DateUtil.getSystemDate());
+		tradeFlowDao.insert(srcFlow);
+		
+		TradeFlow sysFlow = new TradeFlow();
+		sysFlow.setFlowId(IDGenerator.nextID());
+		sysFlow.setOrderId(orderRecord.getOrderId());
+		sysFlow.setOpenId("OpenId_sys");
+		sysFlow.setMerchantId(orderRecord.getMerchantId());
+		sysFlow.setAppId(orderRecord.getAppId());
+		srcFlow.setProductId(orderRecord.getProductId());
+		sysFlow.setTallyTag(1);
+		sysFlow.setCount(orderRecord.getCount());
+		sysFlow.setTradeType(2);
+		sysFlow.setCreateTime(DateUtil.getSystemDate());
+		tradeFlowDao.insert(sysFlow);
+		
+		return true;
+	}
+	/**
+	 * 发送资产流水创建。
+	 * 1，系统减少资产流水
+	 * 2，获取人增加资产流水
+	 */
+	public boolean insertFlow4Get(TradeOrder orderRecord){
+		
+		TradeFlow sysFlow = new TradeFlow();
+		sysFlow.setFlowId(IDGenerator.nextID());
+		sysFlow.setOrderId(orderRecord.getOrderId());
+		sysFlow.setOpenId("OpenId_sys");
+		sysFlow.setMerchantId(orderRecord.getMerchantId());
+		sysFlow.setAppId(orderRecord.getAppId());
+		sysFlow.setTallyTag(0);
+		sysFlow.setCount(orderRecord.getCount());
+		sysFlow.setTradeType(3);
+		sysFlow.setCreateTime(DateUtil.getSystemDate());
+		tradeFlowDao.insert(sysFlow);
+		
+		TradeFlow receFlow = new TradeFlow();
+		receFlow.setFlowId(IDGenerator.nextID());
+		receFlow.setOrderId(orderRecord.getOrderId());
+		receFlow.setOpenId(orderRecord.getToOpenId());
+		receFlow.setMerchantId(orderRecord.getMerchantId());
+		receFlow.setAppId(orderRecord.getAppId());
+		receFlow.setTallyTag(1);
+		receFlow.setCount(orderRecord.getCount());
+		receFlow.setTradeType(3);
+		receFlow.setCreateTime(DateUtil.getSystemDate());
+		tradeFlowDao.insert(receFlow);
+		
+		return true;
+	}
 }

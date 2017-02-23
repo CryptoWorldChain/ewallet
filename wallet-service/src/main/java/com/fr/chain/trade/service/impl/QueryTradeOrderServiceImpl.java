@@ -6,13 +6,10 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
-import com.fr.chain.property.service.QueryPropertyService;
-import com.fr.chain.property.db.dao.PropertyDao;
-import com.fr.chain.property.db.entity.Property;
-import com.fr.chain.property.db.entity.PropertyExample;
 import com.fr.chain.trade.db.dao.TradeOrderDao;
 import com.fr.chain.trade.db.entity.TradeOrder;
 import com.fr.chain.trade.db.entity.TradeOrderExample;
+import com.fr.chain.trade.db.entity.TradeOrderKey;
 import com.fr.chain.trade.service.QueryTradeOrderService;
 
 @Service("queryTradeOrderService")
@@ -30,5 +27,11 @@ public class QueryTradeOrderServiceImpl implements QueryTradeOrderService {
 	@Override
 	public List<TradeOrder>  selectByExample(TradeOrderExample info){
 		return  tradeOrderDao.selectByExample(info);	
+	}
+	@Override
+	public TradeOrder selectOrderByKey(String orderId){
+		TradeOrderKey key = new TradeOrderKey();
+		key.setOrderId(orderId);
+		return tradeOrderDao.selectByPrimaryKey(key);
 	}
 }
