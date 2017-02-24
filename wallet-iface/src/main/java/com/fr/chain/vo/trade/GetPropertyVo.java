@@ -14,7 +14,7 @@ public class GetPropertyVo extends MsgBody{
 	public static class PackageData {
 		private String productid;
 		private String count;
-		private String address;
+		private String orderId;
 		private String owner;
 		public PackageData(){
 			

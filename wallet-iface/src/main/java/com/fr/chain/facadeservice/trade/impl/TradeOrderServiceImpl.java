@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 
+import com.fr.chain.enums.PropertyStatusEnum;
 import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.facadeservice.trade.TradeOrderService;
 import com.fr.chain.message.Message;
@@ -55,7 +56,6 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	DelTradeOrderService delTradeOrderService;
 	@Resource
 	UpdateTradeOrderService updateTradeOrderService;
-	
 	
 	@Override
 	public void queryAndCreateTradeOrder(Message msg, QueryTradeOrderVo msgVo, Res_QueryTradeOrderVo res_QueryTradeOrderVo ){
@@ -116,68 +116,62 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 			}
 			diff = diff - NumberUtil.toInt(packageData.getCount()); 
 			
-			//基本属性---需要赋值给新的（系统及发送方剩余）
-			Property srcProperty = listProperty.get(0);
+			//生成新订单
+			String orderId = IDGenerator.nextID();
+			TradeOrder orderRecord =  new TradeOrder();
+			orderRecord.setOrderId(orderId);
+			orderRecord.setMerchantId(msg.getMerchantid());
+			orderRecord.setAppId(msg.getAppid());
+			orderRecord.setOpenId(msg.getOpenid());
+			orderRecord.setFromOpenId(msg.getOpenid());
+			orderRecord.setToOpenId("sysTemp");
+//			orderRecord.setOriginOpenid(originOpenid);
+			orderRecord.setProductId(packageData.getProductid());
+//			orderRecord.setPropertyType(propertyType);
+//			orderRecord.setIsSelfSupport(isSelfSupport);
+//			orderRecord.setProductDesc(productDesc);
+			orderRecord.setIsDigit(packageData.getIsDigit());
+//			orderRecord.setSigntype(signtype);
+//			orderRecord.setPropertyName(propertyName);
+//			orderRecord.setUnit(unit);
+//			orderRecord.setMincount(mincount);
+			orderRecord.setCount(packageData.getCount());
+//			orderRecord.setUrl(url);
+//			orderRecord.setAmount(amount);
+//			orderRecord.setDescription(description);
+//			orderRecord.setAddress(orderId);
+			orderRecord.setCreateTime(DateUtil.getSystemDate());
+			orderRecord.setTradeType(TradeTypeEnum.发送资产.getValue());
+			orderRecord.setStatus(1);
 			
-			Property basicProperty = new Property();
-			basicProperty.setMerchantId(srcProperty.getMerchantId());
-			basicProperty.setAppId(srcProperty.getAppId());
-			basicProperty.setProductId(srcProperty.getProductId());
-			basicProperty.setPropertyType(srcProperty.getPropertyType());
-			basicProperty.setOriginOpenid(srcProperty.getOriginOpenid());
-			basicProperty.setIsSelfSupport(srcProperty.getIsSelfSupport());
-			basicProperty.setProductDesc(srcProperty.getProductDesc());
-			basicProperty.setIsDigit(srcProperty.getIsDigit());
-			basicProperty.setPropertyName(srcProperty.getPropertyName());
-			basicProperty.setUnit(srcProperty.getUnit());
-			basicProperty.setMinCount(srcProperty.getMinCount());
-			basicProperty.setUrl(srcProperty.getUrl());
-			basicProperty.setDescription(srcProperty.getDescription());
-			basicProperty.setCreateTime(DateUtil.getSystemDate());
-			basicProperty.setStatus(1);
+			createTradeOrderService.insert(orderRecord);
 			
-			//原有资产置成不可用，生成新的资产挂载到系统账户中，如果原有资产如有剩余，原有资产综合生成新的一条资产
 			if(diff < 0){
 				String errMsg = String.format("productId:%s,count:%s is to big",packageData.getProductid(), packageData.getCount());
 				throw new IllegalArgumentException(errMsg);
-			}else if(diff != 0){
-				//更新自身资产
-				Property selfProperty = srcProperty;
-				selfProperty.setPropertyId(IDGenerator.nextID());
-				String address= IDGenerator.nextID();//"chainAdress";//调用底层生成区块链地址
-				selfProperty.setAddress(address);
-				selfProperty.setCount(diff+"");
-				createPropertyService.insert(selfProperty);
 			}
+			
+			
+			//发送方原有资产置成不可用
 			for(Property propertyRecord :listProperty){
-				propertyRecord.setStatus(0);
+				propertyRecord.setStatus(PropertyStatusEnum.不可用.getValue());
 				updatePropertyService.updateByPrimaryKeySelective(propertyRecord);
 				
 			}
+			//新资产迭换,生成新的资产挂载到系统账户中，如果原有资产如有剩余，原有资产综合生成新的一条资产
+			String srcAddress = IDGenerator.nextID();
+			String receAddress = IDGenerator.nextID();
+			createPropertyService.inserPropertyFreezen(orderRecord, diff, srcAddress, NumberUtil.toInt(packageData.getCount()), receAddress);
 			
-			//增加系统资产
-			Property sysProperty = basicProperty;
-			sysProperty.setPropertyId(IDGenerator.nextID());
-			sysProperty.setOpenId("OpenId_sys");
-			String address= IDGenerator.nextID();//"chainAdress";//调用底层生成区块链地址
-			sysProperty.setAddress(address);
-			sysProperty.setCount(packageData.getCount());
-//			sysProperty.setAmount(amount);
-			createPropertyService.insert(sysProperty);
 			
-			//创建订单--发送方发送
-			sysProperty.setOpenId(srcProperty.getOpenId());
-			createTradeOrderService.insertTradeByProperty(sysProperty, TradeTypeEnum.发送资产.getValue());
+			//创建流水
+			createTradeOrderService.insertFlow4Sent(orderRecord);
 			
-			//系统订单--系统方领取
-			sysProperty.setOpenId("OpenId_sys");
-			createTradeOrderService.insertTradeByProperty(sysProperty, TradeTypeEnum.领取资产.getValue());
-
 			//组装返回报文
 			Res_SendPropertyVo.PackageData resPackageData = new Res_SendPropertyVo.PackageData();
 			resPackageData.setProductid(packageData.getProductid());
 			resPackageData.setCount(packageData.getCount());
-			resPackageData.setAddress(address);
+			resPackageData.setTradeId(orderId);
 			res_SendPropertyVo.getData().add(resPackageData);							
 		}
 	}
@@ -189,31 +183,37 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 		property.setAppId(msg.getAppid());	
 		List<GetPropertyVo.PackageData> packageDataList  =  msgVo.getData();
 		for(GetPropertyVo.PackageData packageData :packageDataList){
-			property.setProductId(packageData.getProductid());
-			property.setAddress(packageData.getAddress());
-			Property tmpProperty = queryPropertyService.selectOneByExample(property);
-			if(tmpProperty==null){
-				String errMsg = String.format("没有查询到productId=%s相应的结果!",packageData.getProductid());
+			
+			String orderId = packageData.getOrderId();
+			
+			TradeOrderKey orderKey = new TradeOrderKey();
+			orderKey.setOrderId(orderId);
+			TradeOrder orderRecord =  queryTradeOrderService.selectOrderByKey(orderId);
+			if(orderRecord==null){
+				String errMsg = String.format("没有查询到tradeId=%s相应的结果!",orderId);
 				throw new IllegalArgumentException(errMsg);
 			}
-			int diff = NumberUtil.toInt(tmpProperty.getCount()) - NumberUtil.toInt(packageData.getCount()); 
-			if(diff != 0){
-				String errMsg = String.format("productId:%s,the count:%s is error",packageData.getProductid(), packageData.getCount());
+			if(orderRecord.getStatus()!=1){
+				String errMsg = String.format("订单tradeId=%s状态不正确!",orderId);
 				throw new IllegalArgumentException(errMsg);
 			}
-			//领取资产,只变更用户,区块链地址不变
-			tmpProperty.setOpenId(msg.getOpenid());	
-			tmpProperty.setCreateTime(DateUtil.getSystemDate());
-			updatePropertyService.updateByPrimaryKey(tmpProperty);
 			
-			//创建订单
-			tmpProperty.setOpenId(msg.getOpenid());
-			createTradeOrderService.insertTradeByProperty(tmpProperty, TradeTypeEnum.领取资产.getValue());
+			//订单更新状态
+			orderRecord.setToOpenId(msg.getOpenid());
+			orderRecord.setTradeType(TradeTypeEnum.领取资产.getValue());
+			orderRecord.setStatus(1);
+			updateTradeOrderService.updateTradeOrder(orderRecord);
 			
-			//系统订单
-			tmpProperty.setOpenId("OpenId_sys");
-			createTradeOrderService.insertTradeByProperty(property, TradeTypeEnum.发送资产.getValue());
+			//流水创建
+			createTradeOrderService.insertFlow4Get(orderRecord);
+			
+			//资产置换
+			String getAddress = IDGenerator.nextID();
+			updatePropertyService.updateByOrder(orderRecord, getAddress);
+			
 		}
+		responseMsg.setStatus(1+"");
+		responseMsg.setRetCode(1+"");
 	}
 	
 	

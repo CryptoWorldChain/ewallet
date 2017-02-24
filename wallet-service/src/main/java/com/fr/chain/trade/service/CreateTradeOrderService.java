@@ -24,6 +24,11 @@ public interface CreateTradeOrderService {
 	
 	public int batchInsertFlow(List<TradeFlow> records);
 	
+	//创建资产流水创建
 	public	int insertTradeFlowByOrder(TradeOrder orderRecord);
 
+	//发送资产流水创建
+	public boolean insertFlow4Sent(TradeOrder orderRecord);
+	//获取资产流水创建
+	public boolean insertFlow4Get(TradeOrder orderRecord);
 }

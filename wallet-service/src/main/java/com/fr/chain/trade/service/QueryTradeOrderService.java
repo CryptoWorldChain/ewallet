@@ -8,5 +8,5 @@ import com.fr.chain.trade.db.entity.TradeOrderExample;
 public interface QueryTradeOrderService {
 	public List<TradeOrder>  selectByExample(TradeOrder info);
 	public List<TradeOrder>  selectByExample(TradeOrderExample info);
-
+	public TradeOrder selectOrderByKey(String orderId);
 }

@@ -63,13 +63,15 @@ public class PropertyServiceImpl implements PropertyService {
 		orderRecord.setOrderId(orderId);
 		orderRecord.setMerchantId(msg.getMerchantid());
 		orderRecord.setAppId(msg.getAppid());
-		orderRecord.setOpenId("");
+		orderRecord.setOpenId(msg.getOpenid());
 		orderRecord.setFromOpenId("");
-		orderRecord.setToOpenId(msg.getOpenid());
+		orderRecord.setToOpenId("");
 		orderRecord.setOriginOpenid(msg.getOpenid());
 		orderRecord.setProductId(msgVo.getProductid());
 		orderRecord.setPropertyType(msgVo.getPropertytype());
 		orderRecord.setIsSelfSupport(msgVo.getIsselfsupport());
+		orderRecord.setProductDesc(msgVo.getProductdesc());
+		orderRecord.setIsDigit(msgVo.getIsdigit());
 		orderRecord.setSigntype(msgVo.getSigntype());
 		orderRecord.setPropertyName(msgVo.getPropertyname());
 		orderRecord.setUnit(msgVo.getUnit());
@@ -82,7 +84,7 @@ public class PropertyServiceImpl implements PropertyService {
 		orderRecord.setDescription(msgVo.getDescription());
 		orderRecord.setAddress(address);
 		orderRecord.setCreateTime(DateUtil.getSystemDate());
-		orderRecord.setTradeType(1);
+		orderRecord.setTradeType(TradeTypeEnum.创建资产.getValue());
 		orderRecord.setStatus(1);
 		
 		//插入新的订单

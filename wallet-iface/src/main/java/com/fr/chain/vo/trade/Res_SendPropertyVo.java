@@ -21,7 +21,7 @@ public class Res_SendPropertyVo extends MsgBody{
 		
 		private String count;
 		
-		private String address;
+		private String tradeId;
 
 		public PackageData(){
 			
