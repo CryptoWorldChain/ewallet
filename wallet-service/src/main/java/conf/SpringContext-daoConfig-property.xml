@@ -17,5 +17,9 @@
 		<property name="mapperInterface" value="com.fr.chain.property.db.mapper.ProductInfoMapper" />
 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
 	</bean>
+	<bean id="productDigitMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="com.fr.chain.property.db.mapper.ProductDigitMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
 	
 </beans>
