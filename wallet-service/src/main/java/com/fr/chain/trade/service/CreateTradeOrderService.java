@@ -31,4 +31,7 @@ public interface CreateTradeOrderService {
 	public boolean insertFlow4Sent(TradeOrder orderRecord);
 	//获取资产流水创建
 	public boolean insertFlow4Get(TradeOrder orderRecord);
+	
+	//丢弃资产流水创建
+	public boolean insertFlow4Drop(TradeOrder orderRecord);
 }

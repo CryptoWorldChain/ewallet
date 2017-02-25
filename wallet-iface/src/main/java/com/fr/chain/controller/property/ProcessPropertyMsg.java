@@ -15,9 +15,11 @@ import org.springframework.stereotype.Component;
 import com.fr.chain.enums.BaseStatusEnum;
 import com.fr.chain.facadeservice.property.PropertyService;
 import com.fr.chain.message.Message;
+import com.fr.chain.message.MessageException;
 import com.fr.chain.message.MsgBody;
 import com.fr.chain.message.ResponseMsg;
-import com.fr.chain.utils.BeanFactory;
+import com.fr.chain.property.db.entity.ProductInfo;
+import com.fr.chain.property.service.QueryPropertyService;
 import com.fr.chain.utils.JsonUtil;
 import com.fr.chain.utils.StringUtil;
 import com.fr.chain.vo.property.CreatePropertyVo;
@@ -31,6 +33,8 @@ import com.fr.chain.vo.property.Res_QueryPropertyVo;
 public class ProcessPropertyMsg {
     @Resource
 	private PropertyService propertyService;
+    @Resource
+    private QueryPropertyService  queryPropertyService;
     
 	private void buildCreatePropertyBody(Message<CreatePropertyVo> gpmsg) {
 		List<CreatePropertyVo> bodys = new ArrayList<>();
@@ -62,11 +66,17 @@ public class ProcessPropertyMsg {
 						this.validNull(msgVo);
 						//新建返回报文
 						Res_CreatePropertyVo res_CreatePropertyVo =new Res_CreatePropertyVo(msgVo.getDatano());
+						//验证productid
+						ProductInfo productInfo =propertyService.selectProduct4CreateProperty(msg, msgVo);
 						//具体每笔业务
-						propertyService.createProperty(msg, msgVo, res_CreatePropertyVo);
+						propertyService.createProperty(msg, msgVo, res_CreatePropertyVo,productInfo);
 						//组装返回报文
 						resp.put(msgVo.getDatano(), res_CreatePropertyVo);
-					}catch (NullPointerException ne) {
+					}catch (MessageException me){
+						log.error("no limit to create Propuct failed:" + me.getMessage(), me);
+						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),me.getMessage()));
+					}
+					catch (NullPointerException ne) {
 						log.error("Create Account is failed:" + ne.getMessage(), ne);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ne.getMessage()));
 					}
@@ -142,14 +152,19 @@ public class ProcessPropertyMsg {
 	@SuppressWarnings("unused")
 	private void validNull(CreatePropertyVo msgVo){
 		String error="%s is null or empty";
-		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
-		if(StringUtil.isBlank(msgVo.getPropertytype())) throw new NullPointerException(String.format(error,"propertytype"));
-		if(StringUtil.isBlank(msgVo.getIsselfsupport())) throw new NullPointerException(String.format(error,"isselfsupport"));
-		if(StringUtil.isBlank(msgVo.getProductid())) throw new NullPointerException(String.format(error,"productid"));
-		if(StringUtil.isBlank(msgVo.getIsdigit())) throw new NullPointerException(String.format(error,"isdigit"));
-		if(StringUtil.isBlank(msgVo.getSigntype())) throw new NullPointerException(String.format(error,"signtype"));
-		if(StringUtil.isBlank(msgVo.getPropertyname())) throw new NullPointerException(String.format(error,"propertyname"));
+//		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
+//		if(StringUtil.isBlank(msgVo.getPropertytype())) throw new NullPointerException(String.format(error,"propertytype"));
+//		if(StringUtil.isBlank(msgVo.getIsselfsupport())) throw new NullPointerException(String.format(error,"isselfsupport"));
+//		if(StringUtil.isBlank(msgVo.getProductid())) throw new NullPointerException(String.format(error,"productid"));
+//		if(StringUtil.isBlank(msgVo.getIsdigit())) throw new NullPointerException(String.format(error,"isdigit"));
+//		if(StringUtil.isBlank(msgVo.getSigntype())) throw new NullPointerException(String.format(error,"signtype"));
+//		if(StringUtil.isBlank(msgVo.getPropertyname())) throw new NullPointerException(String.format(error,"propertyname"));
 		if(StringUtil.isBlank(msgVo.getCount())) throw new NullPointerException(String.format(error,"count"));		
+	}
+	
+	private void validProduct(CreatePropertyVo msgVo){
+		String productId = msgVo.getProductid();
+		queryPropertyService.selectProductInfoByKey(productId);
 	}
 	
 	private void validNull(QueryPropertyVo msgVo){

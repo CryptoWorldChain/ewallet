@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.trade.db.dao.TradeFlowDao;
 import com.fr.chain.trade.db.dao.TradeOrderDao;
@@ -105,7 +106,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		tradeFlow.setMincount(orderRecord.getMincount());
 		tradeFlow.setCount(orderRecord.getCount());
 		tradeFlow.setUrl(orderRecord.getUrl());
-		tradeFlow.setAmount(orderRecord.getAmount());
+//		tradeFlow.setAmount(orderRecord.getAmount());
 		tradeFlow.setDescription(orderRecord.getDescription());
 		tradeFlow.setAddress(orderRecord.getAddress());
 		tradeFlow.setTradeType(orderRecord.getTradeType());
@@ -133,6 +134,15 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		srcFlow.setCount(orderRecord.getCount());
 		srcFlow.setTradeType(2);
 		srcFlow.setCreateTime(DateUtil.getSystemDate());
+		
+		srcFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		srcFlow.setSigntype(orderRecord.getSigntype());
+		srcFlow.setPropertyName(orderRecord.getPropertyName());
+		srcFlow.setUnit(orderRecord.getUnit());
+		srcFlow.setMincount(orderRecord.getMincount());
+		srcFlow.setUrl(orderRecord.getUrl());
+		srcFlow.setDescription(orderRecord.getDescription());
+		srcFlow.setPropertyType(orderRecord.getIsDigit());
 		tradeFlowDao.insert(srcFlow);
 		
 		TradeFlow sysFlow = new TradeFlow();
@@ -146,6 +156,15 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		sysFlow.setCount(orderRecord.getCount());
 		sysFlow.setTradeType(2);
 		sysFlow.setCreateTime(DateUtil.getSystemDate());
+		
+		sysFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		sysFlow.setSigntype(orderRecord.getSigntype());
+		sysFlow.setPropertyName(orderRecord.getPropertyName());
+		sysFlow.setUnit(orderRecord.getUnit());
+		sysFlow.setMincount(orderRecord.getMincount());
+		sysFlow.setUrl(orderRecord.getUrl());
+		sysFlow.setDescription(orderRecord.getDescription());
+		sysFlow.setPropertyType(orderRecord.getIsDigit());
 		tradeFlowDao.insert(sysFlow);
 		
 		return true;
@@ -163,10 +182,20 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		sysFlow.setOpenId("OpenId_sys");
 		sysFlow.setMerchantId(orderRecord.getMerchantId());
 		sysFlow.setAppId(orderRecord.getAppId());
+		sysFlow.setProductId(orderRecord.getProductId());
 		sysFlow.setTallyTag(0);
 		sysFlow.setCount(orderRecord.getCount());
-		sysFlow.setTradeType(3);
+		sysFlow.setTradeType(TradeTypeEnum.领取资产.getValue());
 		sysFlow.setCreateTime(DateUtil.getSystemDate());
+		
+		sysFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		sysFlow.setSigntype(orderRecord.getSigntype());
+		sysFlow.setPropertyName(orderRecord.getPropertyName());
+		sysFlow.setUnit(orderRecord.getUnit());
+		sysFlow.setMincount(orderRecord.getMincount());
+		sysFlow.setUrl(orderRecord.getUrl());
+		sysFlow.setDescription(orderRecord.getDescription());
+		sysFlow.setPropertyType(orderRecord.getIsDigit());
 		tradeFlowDao.insert(sysFlow);
 		
 		TradeFlow receFlow = new TradeFlow();
@@ -175,11 +204,49 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		receFlow.setOpenId(orderRecord.getToOpenId());
 		receFlow.setMerchantId(orderRecord.getMerchantId());
 		receFlow.setAppId(orderRecord.getAppId());
+		receFlow.setProductId(orderRecord.getProductId());
 		receFlow.setTallyTag(1);
 		receFlow.setCount(orderRecord.getCount());
-		receFlow.setTradeType(3);
+		receFlow.setTradeType(TradeTypeEnum.领取资产.getValue());
 		receFlow.setCreateTime(DateUtil.getSystemDate());
+		
+		receFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		receFlow.setSigntype(orderRecord.getSigntype());
+		receFlow.setPropertyName(orderRecord.getPropertyName());
+		receFlow.setUnit(orderRecord.getUnit());
+		receFlow.setMincount(orderRecord.getMincount());
+		receFlow.setUrl(orderRecord.getUrl());
+		receFlow.setDescription(orderRecord.getDescription());
+		receFlow.setPropertyType(orderRecord.getIsDigit());
 		tradeFlowDao.insert(receFlow);
+		
+		return true;
+	}
+	/**
+	 * 丢弃资产流水创建。
+	 */
+	public boolean insertFlow4Drop(TradeOrder orderRecord){
+		TradeFlow dropFlow = new TradeFlow();
+		dropFlow.setFlowId(IDGenerator.nextID());
+		dropFlow.setOrderId(orderRecord.getOrderId());
+		dropFlow.setOpenId(orderRecord.getOpenId());
+		dropFlow.setMerchantId(orderRecord.getMerchantId());
+		dropFlow.setAppId(orderRecord.getAppId());
+		dropFlow.setProductId(orderRecord.getProductId());
+		dropFlow.setTallyTag(0);
+		dropFlow.setCount(orderRecord.getCount());
+		dropFlow.setTradeType(TradeTypeEnum.丢弃资产.getValue());
+		dropFlow.setCreateTime(DateUtil.getSystemDate());
+		
+		dropFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		dropFlow.setSigntype(orderRecord.getSigntype());
+		dropFlow.setPropertyName(orderRecord.getPropertyName());
+		dropFlow.setUnit(orderRecord.getUnit());
+		dropFlow.setMincount(orderRecord.getMincount());
+		dropFlow.setUrl(orderRecord.getUrl());
+		dropFlow.setDescription(orderRecord.getDescription());
+		dropFlow.setPropertyType(orderRecord.getIsDigit());
+		tradeFlowDao.insert(dropFlow);
 		
 		return true;
 	}

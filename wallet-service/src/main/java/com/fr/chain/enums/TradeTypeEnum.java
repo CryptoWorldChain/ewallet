@@ -4,17 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 资产类型枚举类
+ * 交易类型枚举类
  * @author dylan
  *
  */
-public enum PropertyTypeEnum {	
-	数字资产(1, "数字资产"),
-	个性资产(2, "个性资产");
+public enum TradeTypeEnum {	
+	创建资产(1, "创建资产"),
+	发送资产(2, "发送资产"),
+	领取资产(3, "领取资产"),
+	退回资产(4, "退回资产"),
+	丢弃资产(5, "丢弃资产"),
+	消费资产(6, "消费资产");
 	
 
 	public static String getNameByValue(int value) {
-		PropertyTypeEnum status = valueMap.get(value);
+		TradeTypeEnum status = valueMap.get(value);
 		if (status != null) {
 			return status.getName();
 		}
@@ -22,20 +26,20 @@ public enum PropertyTypeEnum {
 	}
 
 	public static Integer getValueByName(String name) {
-		PropertyTypeEnum status = nameMap.get(name);
+		TradeTypeEnum status = nameMap.get(name);
 		if (status != null) {
 			return status.getValue();
 		}
 		return null;
 	}
 
-	private static Map<Integer, PropertyTypeEnum> valueMap;
+	private static Map<Integer, TradeTypeEnum> valueMap;
 
-	private static Map<String, PropertyTypeEnum> nameMap;
+	private static Map<String, TradeTypeEnum> nameMap;
 	static {
-		valueMap = new HashMap<Integer, PropertyTypeEnum>();
-		nameMap = new HashMap<String, PropertyTypeEnum>();
-		for (PropertyTypeEnum status : PropertyTypeEnum.values()) {
+		valueMap = new HashMap<Integer, TradeTypeEnum>();
+		nameMap = new HashMap<String, TradeTypeEnum>();
+		for (TradeTypeEnum status : TradeTypeEnum.values()) {
 			valueMap.put(status.getValue(), status);
 			nameMap.put(status.getName(), status);
 		}
@@ -44,7 +48,7 @@ public enum PropertyTypeEnum {
 	private int value;
 	private String name;
 
-	private PropertyTypeEnum(int value, String name) {
+	private TradeTypeEnum(int value, String name) {
 		this.value = value;
 		this.name = name;
 	}

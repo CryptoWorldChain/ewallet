@@ -7,7 +7,9 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import com.fr.chain.enums.PropertyStatusEnum;
+import com.fr.chain.property.db.dao.ProductInfoDao;
 import com.fr.chain.property.db.dao.PropertyDao;
+import com.fr.chain.property.db.entity.ProductInfo;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.property.service.CreatePropertyService;
 import com.fr.chain.trade.db.entity.TradeOrder;
@@ -19,7 +21,8 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 	
 	@Resource 
 	PropertyDao propertyDao;
-	
+	@Resource
+	ProductInfoDao productInfoDao;
 	
 	@Override
 	public	int insert(Property info){
@@ -58,9 +61,9 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 		property.setMinCount(orderRecord.getMincount());
 		property.setCount(orderRecord.getCount());
 		property.setUrl(orderRecord.getUrl());
-		if(orderRecord.getAmount()!=null){
-			property.setAmount(orderRecord.getAmount());
-		}						
+//		if(orderRecord.getAmount()!=null){
+//			property.setAmount(orderRecord.getAmount());
+//		}						
 		property.setDescription(orderRecord.getDescription());							
 		//调用底层区块链生成地址
 		property.setCreateTime(DateUtil.getSystemDate());
@@ -85,6 +88,16 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 			srcProperty.setAddress(srcAddress);
 			srcProperty.setCount(srcCount+"");
 			srcProperty.setStatus(PropertyStatusEnum.锁定.getValue());
+			srcProperty.setCreateTime(DateUtil.getSystemDate());
+			
+			srcProperty.setOriginOpenid(orderRecord.getOriginOpenid());
+			srcProperty.setSignType(orderRecord.getSigntype());
+			srcProperty.setPropertyName(orderRecord.getPropertyName());
+			srcProperty.setUnit(orderRecord.getUnit());
+			srcProperty.setMinCount(orderRecord.getMincount());
+			srcProperty.setUrl(orderRecord.getUrl());
+			srcProperty.setDescription(orderRecord.getDescription());
+			srcProperty.setPropertyType(orderRecord.getIsDigit());
 			propertyDao.insert(srcProperty);
 		}
 		Property sysProperty = new Property();
@@ -98,8 +111,20 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 		sysProperty.setCount(receCount+"");
 		sysProperty.setStatus(PropertyStatusEnum.锁定.getValue());
 		
+		sysProperty.setOriginOpenid(orderRecord.getOriginOpenid());
+		sysProperty.setSignType(orderRecord.getSigntype());
+		sysProperty.setPropertyName(orderRecord.getPropertyName());
+		sysProperty.setUnit(orderRecord.getUnit());
+		sysProperty.setMinCount(orderRecord.getMincount());
+		sysProperty.setUrl(orderRecord.getUrl());
+		sysProperty.setDescription(orderRecord.getDescription());
+		sysProperty.setPropertyType(orderRecord.getIsDigit());
 		propertyDao.insert(sysProperty);
 		
 		return true;
+	}
+	
+	public int insertProductInfo(ProductInfo info){
+		return productInfoDao.insert(info);
 	}
 }

@@ -136,7 +136,8 @@ public class TradeOrderCtrl extends BasicCtrl {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);
 		Message inMsg=null;
 		try {
-			inMsg = MessageBuilder.buildMessage(jsontxt);		
+			inMsg = MessageBuilder.buildMessage(jsontxt);
+			System.out.println(processTradeMsg);
 			Object obj=processTradeMsg.processGetProperty(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));

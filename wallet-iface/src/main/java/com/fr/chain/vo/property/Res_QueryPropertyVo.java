@@ -17,18 +17,16 @@ public class Res_QueryPropertyVo extends MsgBody{
 	@Data
 	public static class PropertyInfo{	
 		private String propertytype; //资产类型
-		private String isselfsupport;
 		private String productid;
 		private String productdesc;
-		private String isdigit;
 		private String signtype;
 		private String propertyname;	
 		private String unit;
 		private String mincount;
 		private String count;
 		private String url;
-		private BigDecimal amount;
 		private String description;		
+		private String status;
 	}
 	
 	public Res_QueryPropertyVo(){	

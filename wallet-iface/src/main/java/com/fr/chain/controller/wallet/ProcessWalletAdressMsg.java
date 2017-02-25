@@ -87,7 +87,7 @@ public class ProcessWalletAdressMsg {
 	private void validNull(QueryWalletAdressVo msgVo){
 		String error="%s is null or empty";
 		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
-		if(StringUtil.isBlank(msgVo.getWalletcode())) throw new NullPointerException(String.format(error,"propertytype"));
+		if(StringUtil.isBlank(msgVo.getWalletcode())) throw new NullPointerException(String.format(error,"walletcode"));
 	}
 	private void validStatus(String status){
 		switch(status){

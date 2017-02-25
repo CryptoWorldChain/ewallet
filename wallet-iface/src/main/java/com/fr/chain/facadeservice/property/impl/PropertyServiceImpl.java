@@ -9,13 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 
-import com.fr.chain.vo.property.CreatePropertyVo;
-import com.fr.chain.vo.property.QueryPropertyVo;
-import com.fr.chain.vo.property.Res_CreatePropertyVo;
-import com.fr.chain.vo.property.Res_QueryPropertyVo;
+import com.fr.chain.enums.PropertyStatusEnum;
 import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.facadeservice.property.PropertyService;
 import com.fr.chain.message.Message;
+import com.fr.chain.message.MessageException;
+import com.fr.chain.property.db.entity.ProductInfo;
+import com.fr.chain.property.db.entity.ProductInfoKey;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.property.db.entity.PropertyExample;
 import com.fr.chain.property.db.entity.PropertyKey;
@@ -27,7 +27,11 @@ import com.fr.chain.trade.db.entity.TradeOrder;
 import com.fr.chain.trade.service.CreateTradeOrderService;
 import com.fr.chain.utils.DateUtil;
 import com.fr.chain.utils.IDGenerator;
-import com.fr.chain.utils.NumberUtil;
+import com.fr.chain.utils.StringUtil;
+import com.fr.chain.vo.property.CreatePropertyVo;
+import com.fr.chain.vo.property.QueryPropertyVo;
+import com.fr.chain.vo.property.Res_CreatePropertyVo;
+import com.fr.chain.vo.property.Res_QueryPropertyVo;
 
 @Slf4j
 @Service("propertyService")
@@ -50,12 +54,12 @@ public class PropertyServiceImpl implements PropertyService {
 	 * 创建资产
 	 */
 	@Override
-	public void createProperty(Message msg, CreatePropertyVo msgVo, Res_CreatePropertyVo res_CreatePropertyVo ) {
+	public void createProperty(Message msg, CreatePropertyVo msgVo, Res_CreatePropertyVo res_CreatePropertyVo ,
+			ProductInfo productInfo) {
 		
 		//模拟生成地址,调用底层区块链生成地址
 		String address = ""; //钱包地址
 		address = IDGenerator.nextID();
-				
 				
 		//生成新的订单
 		String orderId = IDGenerator.nextID();
@@ -66,23 +70,23 @@ public class PropertyServiceImpl implements PropertyService {
 		orderRecord.setOpenId(msg.getOpenid());
 		orderRecord.setFromOpenId("");
 		orderRecord.setToOpenId("");
-		orderRecord.setOriginOpenid(msg.getOpenid());
-		orderRecord.setProductId(msgVo.getProductid());
-		orderRecord.setPropertyType(msgVo.getPropertytype());
-		orderRecord.setIsSelfSupport(msgVo.getIsselfsupport());
-		orderRecord.setProductDesc(msgVo.getProductdesc());
-		orderRecord.setIsDigit(msgVo.getIsdigit());
-		orderRecord.setSigntype(msgVo.getSigntype());
+		orderRecord.setOriginOpenid(productInfo.getOriginOpenid());
+		orderRecord.setProductId(productInfo.getProductId());
+		orderRecord.setPropertyType(productInfo.getPropertyType()+"");
+//		orderRecord.setIsSelfSupport(msgVo.getIsselfsupport());
+		orderRecord.setProductDesc(productInfo.getProductDesc());
+		orderRecord.setIsDigit(0+"");
+		orderRecord.setSigntype(productInfo.getSignType());
 		orderRecord.setPropertyName(msgVo.getPropertyname());
-		orderRecord.setUnit(msgVo.getUnit());
-		orderRecord.setMincount(msgVo.getMincount());
+		orderRecord.setUnit(productInfo.getUnit());
+		orderRecord.setMincount(productInfo.getMinCount());
 		orderRecord.setCount(msgVo.getCount());
-		orderRecord.setUrl(msgVo.getUrl());
-		if(msgVo.getAmount()!=null){
-			orderRecord.setAmount(new BigDecimal(msgVo.getAmount()));
-		}
-		orderRecord.setDescription(msgVo.getDescription());
-		orderRecord.setAddress(address);
+		orderRecord.setUrl(productInfo.getUrl());
+//		if(msgVo.getAmount()!=null){
+//			orderRecord.setAmount(new BigDecimal(msgVo.getAmount()));
+//		}
+		orderRecord.setDescription(productInfo.getDescription());
+//		orderRecord.setAddress(address);
 		orderRecord.setCreateTime(DateUtil.getSystemDate());
 		orderRecord.setTradeType(TradeTypeEnum.创建资产.getValue());
 		orderRecord.setStatus(1);
@@ -98,9 +102,6 @@ public class PropertyServiceImpl implements PropertyService {
 		
 		//设置返回报文
 		res_CreatePropertyVo.setProductid(msgVo.getProductid());
-		res_CreatePropertyVo.setPropertytype(msgVo.getPropertytype());		
-		res_CreatePropertyVo.setAddress(address);
-		res_CreatePropertyVo.setOrderId(orderId);
 	}
 	
 	
@@ -114,12 +115,13 @@ public class PropertyServiceImpl implements PropertyService {
 		property.setMerchantId(msg.getMerchantid());
 		property.setOpenId(msg.getOpenid()); 
 		property.setAppId(msg.getAppid());	
-		property.setProductId(msgVo.getProductid());
-		property.setPropertyType(msgVo.getPropertytype());						
-		property.setProductId(msgVo.getProductid());
-		property.setPropertyType(msgVo.getPropertytype());	
-		property.setIsSelfSupport(msgVo.getIsselfsupport());
-		property.setSignType(msgVo.getSigntype());
+		property.setPropertyType(msgVo.getPropertytype());
+		if(!StringUtil.isBlank(msgVo.getProductid())){
+			property.setProductId(msgVo.getProductid());
+		}
+		if(!StringUtil.isBlank(msgVo.getStatus())){
+			property.setStatus(Integer.parseInt(msgVo.getStatus()));
+		}
 		List<Property> propertyList = queryPropertyService.selectByExample(property);
 		
 		if(propertyList != null && propertyList.size()>0){ 
@@ -127,18 +129,16 @@ public class PropertyServiceImpl implements PropertyService {
 				//BeanUtils.copyProperties(propertyInfo, tmpProperty); //拷贝
 				Res_QueryPropertyVo.PropertyInfo propertyInfo = new Res_QueryPropertyVo.PropertyInfo();
 				propertyInfo.setPropertytype(tmpProperty.getPropertyType());
-				propertyInfo.setIsselfsupport(tmpProperty.getIsSelfSupport());
 				propertyInfo.setProductid(tmpProperty.getProductId());
 				propertyInfo.setProductdesc(tmpProperty.getProductDesc());
-				propertyInfo.setIsdigit(tmpProperty.getIsDigit());
 				propertyInfo.setSigntype(tmpProperty.getSignType());
 				propertyInfo.setPropertyname(tmpProperty.getPropertyName());
 				propertyInfo.setUnit(tmpProperty.getUnit());
 				propertyInfo.setMincount(tmpProperty.getMinCount());
 				propertyInfo.setCount(tmpProperty.getCount());
 				propertyInfo.setUrl(tmpProperty.getUrl());
-				propertyInfo.setAmount(tmpProperty.getAmount());
 				propertyInfo.setDescription(tmpProperty.getDescription());
+				propertyInfo.setStatus(tmpProperty.getStatus()+"");
 				res_QueryPropertyVo.getPropertyInfoList().add(propertyInfo);
 			}
 		}
@@ -173,4 +173,41 @@ public class PropertyServiceImpl implements PropertyService {
 	public int updateByExampleSelective (Property record, PropertyExample example){
 		return updatePropertyService.updateByExampleSelective(record,example);
 	}
+	@Override
+	public ProductInfo selectProduct4CreateProperty(Message msg, CreatePropertyVo msgVo){
+		ProductInfo info = null;
+		if(!StringUtil.isBlank(msgVo.getProductid())){
+			info = queryPropertyService.selectProductInfoByKey(msgVo.getProductid());
+		}
+		
+		if(info!=null&&!info.getOriginOpenid().equals(msg.getOpenid())){
+			throw new MessageException("没有权限创建资产");
+		}else if(info!=null){
+			return info;
+		}
+		//创建个新的productinfo
+		String productid =IDGenerator.nextID(); 
+		info = new ProductInfo();
+		info.setProductId(productid);
+		info.setMerchantId(msg.getMerchantid());
+		info.setAppId(msg.getAppid());
+		info.setProductDesc(msgVo.getProductdesc());
+//		info.setPropertyType(Integer.parseInt(msgVo.getPropertytype()));
+		info.setOriginOpenid(msg.getOpenid());
+		info.setSignType(msgVo.getSigntype());
+		info.setPropertyName(msgVo.getPropertyname());
+		info.setUnit(msgVo.getUnit());
+		info.setMinCount(msgVo.getMincount());
+		info.setUrl(msgVo.getUrl());
+		info.setDescription(msgVo.getDescription());
+		info.setCreateTime(DateUtil.getSystemDate());
+		info.setStatus(1);
+		
+		createPropertyService.insertProductInfo(info);
+		
+		msgVo.setProductid(productid);
+		
+		return info;
+	}
+	
 }

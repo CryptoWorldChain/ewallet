@@ -6,10 +6,7 @@ import lombok.Data;
 
 @Data
 public class Res_CreatePropertyVo extends MsgBody{
-	private String propertytype;
 	private String productid;
-	private String address;
-	private String orderId;
 	
 	public Res_CreatePropertyVo(){		
 	}
