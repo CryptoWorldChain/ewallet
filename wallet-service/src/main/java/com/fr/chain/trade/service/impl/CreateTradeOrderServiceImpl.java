@@ -250,4 +250,56 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		
 		return true;
 	}
+	
+	/**
+	 * 资产交易流水创建
+	 */
+	public boolean insertFolw4Trans(TradeOrder orderRecord){
+		
+		TradeFlow fromFlow = new TradeFlow();
+		fromFlow.setFlowId(IDGenerator.nextID());
+		fromFlow.setOrderId(orderRecord.getOrderId());
+		fromFlow.setOpenId(orderRecord.getFromOpenId());
+		fromFlow.setMerchantId(orderRecord.getMerchantId());
+		fromFlow.setAppId(orderRecord.getAppId());
+		fromFlow.setProductId(orderRecord.getProductId());
+		fromFlow.setTallyTag(0);
+		fromFlow.setCount(orderRecord.getCount());
+		fromFlow.setTradeType(TradeTypeEnum.资产转移.getValue());
+		fromFlow.setCreateTime(DateUtil.getSystemDate());
+		
+		fromFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		fromFlow.setSigntype(orderRecord.getSigntype());
+		fromFlow.setPropertyName(orderRecord.getPropertyName());
+		fromFlow.setUnit(orderRecord.getUnit());
+		fromFlow.setMincount(orderRecord.getMincount());
+		fromFlow.setUrl(orderRecord.getUrl());
+		fromFlow.setDescription(orderRecord.getDescription());
+		fromFlow.setPropertyType(orderRecord.getIsDigit());
+		tradeFlowDao.insert(fromFlow);
+		
+		TradeFlow receFlow = new TradeFlow();
+		receFlow.setFlowId(IDGenerator.nextID());
+		receFlow.setOrderId(orderRecord.getOrderId());
+		receFlow.setOpenId(orderRecord.getToOpenId());
+		receFlow.setMerchantId(orderRecord.getMerchantId());
+		receFlow.setAppId(orderRecord.getAppId());
+		receFlow.setProductId(orderRecord.getProductId());
+		receFlow.setTallyTag(1);
+		receFlow.setCount(orderRecord.getCount());
+		receFlow.setTradeType(TradeTypeEnum.资产转移.getValue());
+		receFlow.setCreateTime(DateUtil.getSystemDate());
+		
+		receFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		receFlow.setSigntype(orderRecord.getSigntype());
+		receFlow.setPropertyName(orderRecord.getPropertyName());
+		receFlow.setUnit(orderRecord.getUnit());
+		receFlow.setMincount(orderRecord.getMincount());
+		receFlow.setUrl(orderRecord.getUrl());
+		receFlow.setDescription(orderRecord.getDescription());
+		receFlow.setPropertyType(orderRecord.getIsDigit());
+		tradeFlowDao.insert(receFlow);
+		
+		return true;
+	}
 }

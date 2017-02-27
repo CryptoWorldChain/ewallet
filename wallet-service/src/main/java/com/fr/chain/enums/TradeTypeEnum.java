@@ -14,7 +14,8 @@ public enum TradeTypeEnum {
 	领取资产(3, "领取资产"),
 	退回资产(4, "退回资产"),
 	丢弃资产(5, "丢弃资产"),
-	消费资产(6, "消费资产");
+	消费资产(6, "消费资产"),
+	资产转移(7, "资产转移");
 	
 
 	public static String getNameByValue(int value) {

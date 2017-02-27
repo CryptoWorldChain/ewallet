@@ -17,15 +17,18 @@ import com.fr.chain.facadeservice.trade.TradeOrderService;
 import com.fr.chain.message.Message;
 import com.fr.chain.message.MsgBody;
 import com.fr.chain.message.ResponseMsg;
-import com.fr.chain.utils.BeanFactory;
 import com.fr.chain.utils.JsonUtil;
 import com.fr.chain.utils.StringUtil;
 import com.fr.chain.vo.trade.ChangePropertyVo;
 import com.fr.chain.vo.trade.GetPropertyVo;
+import com.fr.chain.vo.trade.QueryTradeFlowVo;
 import com.fr.chain.vo.trade.QueryTradeOrderVo;
+import com.fr.chain.vo.trade.Res_QueryTradeFlowVo;
 import com.fr.chain.vo.trade.Res_QueryTradeOrderVo;
 import com.fr.chain.vo.trade.Res_SendPropertyVo;
+import com.fr.chain.vo.trade.Res_TradeOrderVo;
 import com.fr.chain.vo.trade.SendPropertyVo;
+import com.fr.chain.vo.trade.TradeOrderVo;
 
 
 @Slf4j
@@ -34,6 +37,20 @@ public class ProcessTradeMsg {
 	@Resource
 	private TradeOrderService tradeOrderService;
 	
+	private void buildTradeOrderBody(Message<TradeOrderVo> gpmsg) {
+		List<TradeOrderVo> bodys = new ArrayList<>();
+		for (JsonNode node : gpmsg.getAnDatas()) {
+			bodys.add(JsonUtil.json2Bean(node, TradeOrderVo.class));
+		} 
+		gpmsg.setBodyDatas(bodys);
+	}
+	private void buildQueryTradeFlowBody(Message<QueryTradeFlowVo> gpmsg) {
+		List<QueryTradeFlowVo> bodys = new ArrayList<>();
+		for (JsonNode node : gpmsg.getAnDatas()) {
+			bodys.add(JsonUtil.json2Bean(node, QueryTradeFlowVo.class));
+		} 
+		gpmsg.setBodyDatas(bodys);
+	}
 	private void buildQueryTradeOrderBody(Message<QueryTradeOrderVo> gpmsg) {
 		List<QueryTradeOrderVo> bodys = new ArrayList<>();
 		for (JsonNode node : gpmsg.getAnDatas()) {
@@ -66,7 +83,51 @@ public class ProcessTradeMsg {
 		gpmsg.setBodyDatas(bodys);
 	}
 	
-	
+	/**
+	 * 资产交易
+	 * @param msg
+	 * @return
+	 */
+	public Message<MsgBody> processTradeOrder(Message<TradeOrderVo> msg){
+		buildTradeOrderBody(msg);
+		log.debug("TradeOrder msg:" + msg);
+		Map<String,MsgBody> resp = new LinkedHashMap<String, MsgBody>();
+		try {
+			List<TradeOrderVo> datas = msg.getBodyDatas();
+			if (datas != null && datas.size() > 0) {
+				for (TradeOrderVo msgVo : datas) {
+					try{					
+						this.validNull(msgVo);						
+						//新建返回报文
+						Res_TradeOrderVo res_TradeOrderVo =new Res_TradeOrderVo(msgVo.getDatano());
+						//具体每笔业务
+						tradeOrderService.createTradeOrder(msg, msgVo, res_TradeOrderVo);
+						//设置返回报文
+						resp.put(msgVo.getDatano(), res_TradeOrderVo);
+					}catch (NullPointerException ne) {
+						log.error("QueryTradeOrder is failed:" + ne.getMessage(), ne);
+						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ne.getMessage()));
+					}catch (IllegalArgumentException ile) {
+						log.error("QueryTradeOrder is failed:" + ile.getMessage(), ile);
+						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ile.getMessage()));
+					}catch (Exception e) {
+						log.error("QueryTradeOrder is failed:" + e.getMessage(), e);
+						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
+					}
+				}				
+			}
+		}		
+		catch (Exception e) {
+			log.error("QueryTradeOrder is failed:" + e.getMessage(), e);
+			Map<String, MsgBody> errResp = new LinkedHashMap<String, MsgBody>();
+			for (MsgBody body : msg.getBodyDatas()) {	
+				resp.put(body.getDatano(), new ResponseMsg(body.getDatano(),BaseStatusEnum.失败.getCode().toString(), e.getMessage()));
+			}
+			return msg.asResponse(errResp);			
+		}
+		//回复所有报文
+		return msg.asResponse(resp);	
+	}
 	public Message<MsgBody> processQueryTradeOrder(Message<QueryTradeOrderVo> msg){
 		buildQueryTradeOrderBody(msg);
 		log.debug("QueryTradeOrder msg:" + msg);
@@ -76,7 +137,7 @@ public class ProcessTradeMsg {
 			if (datas != null && datas.size() > 0) {
 				for (QueryTradeOrderVo msgVo : datas) {
 					try{					
-						this.validNull(msgVo);						
+						this.validNull(msgVo);					
 						//新建返回报文
 						Res_QueryTradeOrderVo res_QueryTradeOrderVo =new Res_QueryTradeOrderVo(msgVo.getDatano());
 						//具体每笔业务
@@ -109,6 +170,47 @@ public class ProcessTradeMsg {
 	}
 	
 
+	public Message<MsgBody> processQueryTradeFlow(Message<QueryTradeFlowVo> msg){
+		buildQueryTradeFlowBody(msg);
+		log.debug("QueryTradeFlow msg:" + msg);
+		Map<String,MsgBody> resp = new LinkedHashMap<String, MsgBody>();
+		try {
+			List<QueryTradeFlowVo> datas = msg.getBodyDatas();
+			if (datas != null && datas.size() > 0) {
+				for (QueryTradeFlowVo msgVo : datas) {
+					try{					
+						this.validNull(msgVo);						
+						//新建返回报文
+						Res_QueryTradeFlowVo res_QueryTradeFlowVo =new Res_QueryTradeFlowVo(msgVo.getDatano());
+						//具体每笔业务
+						tradeOrderService.queryAndCreateTradeFlow(msg, msgVo, res_QueryTradeFlowVo);
+						//设置返回报文
+						resp.put(msgVo.getDatano(), res_QueryTradeFlowVo);
+					}catch (NullPointerException ne) {
+						log.error("QueryTradeOrder is failed:" + ne.getMessage(), ne);
+						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ne.getMessage()));
+					}catch (IllegalArgumentException ile) {
+						log.error("QueryTradeOrder is failed:" + ile.getMessage(), ile);
+						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ile.getMessage()));
+					}catch (Exception e) {
+						log.error("QueryTradeOrder is failed:" + e.getMessage(), e);
+						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
+					}
+				}				
+			}
+		}		
+		catch (Exception e) {
+			log.error("QueryTradeOrder is failed:" + e.getMessage(), e);
+			Map<String, MsgBody> errResp = new LinkedHashMap<String, MsgBody>();
+			for (MsgBody body : msg.getBodyDatas()) {	
+				resp.put(body.getDatano(), new ResponseMsg(body.getDatano(),BaseStatusEnum.失败.getCode().toString(), e.getMessage()));
+			}
+			return msg.asResponse(errResp);			
+		}
+		//回复所有报文
+		return msg.asResponse(resp);	
+	}
+	
 	public Message<MsgBody> processSendProperty(Message<SendPropertyVo> msg){
 		buildSendPropertyBody(msg);
 		log.debug("SendProperty msg:" + msg);
@@ -242,12 +344,23 @@ public class ProcessTradeMsg {
 	
 	
 
+	private void validNull(TradeOrderVo msgVo){
+		String error="%s is null or empty";
+		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
+		if(StringUtil.isBlank(msgVo.getProductid())) throw new NullPointerException(String.format(error,"productid"));
+		if(StringUtil.isBlank(msgVo.getToopenid())) throw new NullPointerException(String.format(error,"toopenid"));
+		if(StringUtil.isBlank(msgVo.getCount())) throw new NullPointerException(String.format(error,"count"));
+	}
 	private void validNull(QueryTradeOrderVo msgVo){
 		String error="%s is null or empty";
 		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
 		if(StringUtil.isBlank(msgVo.getPropertytype())) throw new NullPointerException(String.format(error,"propertytype"));
 	}
-	
+	private void validNull(QueryTradeFlowVo msgVo){
+		String error="%s is null or empty";
+		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
+		if(StringUtil.isBlank(msgVo.getPropertytype())) throw new NullPointerException(String.format(error,"propertytype"));
+	}
 	private void validNull(SendPropertyVo msgVo){
 		String error="%s is null or empty";
 		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));

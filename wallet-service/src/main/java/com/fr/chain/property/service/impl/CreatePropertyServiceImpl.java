@@ -127,4 +127,54 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 	public int insertProductInfo(ProductInfo info){
 		return productInfoDao.insert(info);
 	}
+	@Override
+	public boolean inserProperty4Trans(TradeOrder orderRecord,String srcCount,String srcAddress,String receCount,String receAddress){
+		if(!srcCount.equals("0")){
+			Property srcProperty = new Property();
+			srcProperty.setPropertyId(IDGenerator.nextID());
+			srcProperty.setOrderId(orderRecord.getOrderId());
+			srcProperty.setMerchantId(orderRecord.getMerchantId());
+			srcProperty.setAppId(orderRecord.getAppId());
+			srcProperty.setOpenId(orderRecord.getFromOpenId());
+			srcProperty.setProductId(orderRecord.getProductId());
+			srcProperty.setAddress(srcAddress);
+			srcProperty.setCount(srcCount+"");
+			srcProperty.setStatus(PropertyStatusEnum.锁定.getValue());
+			srcProperty.setCreateTime(DateUtil.getSystemDate());
+			
+			srcProperty.setOriginOpenid(orderRecord.getOriginOpenid());
+			srcProperty.setSignType(orderRecord.getSigntype());
+			srcProperty.setPropertyName(orderRecord.getPropertyName());
+			srcProperty.setUnit(orderRecord.getUnit());
+			srcProperty.setMinCount(orderRecord.getMincount());
+			srcProperty.setUrl(orderRecord.getUrl());
+			srcProperty.setDescription(orderRecord.getDescription());
+			srcProperty.setPropertyType(orderRecord.getIsDigit());
+			propertyDao.insert(srcProperty);
+		}
+		Property sysProperty = new Property();
+		sysProperty.setPropertyId(IDGenerator.nextID());
+		sysProperty.setOrderId(orderRecord.getOrderId());
+		sysProperty.setMerchantId(orderRecord.getMerchantId());
+		sysProperty.setAppId(orderRecord.getAppId());
+		sysProperty.setOpenId(orderRecord.getToOpenId());
+		sysProperty.setProductId(orderRecord.getProductId());
+		sysProperty.setAddress(receAddress);
+		sysProperty.setCount(receCount+"");
+		sysProperty.setStatus(PropertyStatusEnum.锁定.getValue());
+		sysProperty.setCreateTime(DateUtil.getSystemDate());
+		
+		sysProperty.setOriginOpenid(orderRecord.getOriginOpenid());
+		sysProperty.setSignType(orderRecord.getSigntype());
+		sysProperty.setPropertyName(orderRecord.getPropertyName());
+		sysProperty.setUnit(orderRecord.getUnit());
+		sysProperty.setMinCount(orderRecord.getMincount());
+		sysProperty.setUrl(orderRecord.getUrl());
+		sysProperty.setDescription(orderRecord.getDescription());
+		sysProperty.setPropertyType(orderRecord.getIsDigit());
+		propertyDao.insert(sysProperty);
+		
+		return true;
+	}
+	
 }

@@ -65,7 +65,36 @@ public class TradeOrderCtrl extends BasicCtrl {
 	
 	
 	/**
-	 * 查询订单流水
+	 * 转账订单
+	 * @param req
+	 * @param resp
+	 * @return
+	 */
+	@RequestMapping(value = "/v1_00/tradeOrder", method = RequestMethod.POST)
+	@ResponseBody
+	public Object tradeOrder(HttpServletRequest req, HttpServletResponse resp)  {
+		String jsontxt = httpRequestHelper.getJsonTxt(req);
+		Message inMsg=null;
+		try {
+			inMsg = MessageBuilder.buildMessage(jsontxt);		
+			Object obj=processTradeMsg.processTradeOrder(inMsg);
+			try{
+				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
+			}catch(Exception e){
+				log.error("message Resp Error:", e);
+			}
+			return obj;			
+		} catch (MessageException je) {
+			log.warn("Message error", je);			
+			return new ReturnInfo(je.getMessage(), 0, null,false);
+		} catch (Exception e) {
+			log.error("unknow error", e);			
+			return new ReturnInfo(e.getMessage(), 0, null,false);
+		}
+	}
+	
+	/**
+	 * 查询订单
 	 * @param req
 	 * @param resp
 	 * @return
@@ -78,6 +107,35 @@ public class TradeOrderCtrl extends BasicCtrl {
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);		
 			Object obj=processTradeMsg.processQueryTradeOrder(inMsg);
+			try{
+				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
+			}catch(Exception e){
+				log.error("message Resp Error:", e);
+			}
+			return obj;			
+		} catch (MessageException je) {
+			log.warn("Message error", je);			
+			return new ReturnInfo(je.getMessage(), 0, null,false);
+		} catch (Exception e) {
+			log.error("unknow error", e);			
+			return new ReturnInfo(e.getMessage(), 0, null,false);
+		}
+	}
+	
+	/**
+	 * 查询流水
+	 * @param req
+	 * @param resp
+	 * @return
+	 */
+	@RequestMapping(value = "/v1_00/querytradeFlow", method = RequestMethod.POST)
+	@ResponseBody
+	public Object queryTradeFlow(HttpServletRequest req, HttpServletResponse resp)  {
+		String jsontxt = httpRequestHelper.getJsonTxt(req);
+		Message inMsg=null;
+		try {
+			inMsg = MessageBuilder.buildMessage(jsontxt);		
+			Object obj=processTradeMsg.processQueryTradeFlow(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){

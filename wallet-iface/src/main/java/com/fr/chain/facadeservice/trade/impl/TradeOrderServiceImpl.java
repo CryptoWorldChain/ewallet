@@ -1,11 +1,13 @@
 package com.fr.chain.facadeservice.trade.impl;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.annotation.Resource;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.poi.ss.formula.functions.Count;
 import org.springframework.stereotype.Service;
 
 import com.fr.chain.enums.PropertyStatusEnum;
@@ -16,7 +18,6 @@ import com.fr.chain.message.Message;
 import com.fr.chain.message.ResponseMsg;
 import com.fr.chain.property.db.entity.ProductDigit;
 import com.fr.chain.property.db.entity.ProductInfo;
-import com.fr.chain.property.db.entity.ProductInfoKey;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.property.db.entity.PropertyExample;
 import com.fr.chain.property.db.entity.PropertyExample.Criteria;
@@ -24,6 +25,7 @@ import com.fr.chain.property.service.CreatePropertyService;
 import com.fr.chain.property.service.DelPropertyService;
 import com.fr.chain.property.service.QueryPropertyService;
 import com.fr.chain.property.service.UpdatePropertyService;
+import com.fr.chain.trade.db.entity.TradeFlow;
 import com.fr.chain.trade.db.entity.TradeOrder;
 import com.fr.chain.trade.db.entity.TradeOrderExample;
 import com.fr.chain.trade.db.entity.TradeOrderKey;
@@ -34,13 +36,18 @@ import com.fr.chain.trade.service.UpdateTradeOrderService;
 import com.fr.chain.utils.DateUtil;
 import com.fr.chain.utils.IDGenerator;
 import com.fr.chain.utils.NumberUtil;
+import com.fr.chain.utils.StringUtil;
 import com.fr.chain.vo.property.ProductPublicInfoVo;
 import com.fr.chain.vo.trade.ChangePropertyVo;
 import com.fr.chain.vo.trade.GetPropertyVo;
+import com.fr.chain.vo.trade.QueryTradeFlowVo;
 import com.fr.chain.vo.trade.QueryTradeOrderVo;
+import com.fr.chain.vo.trade.Res_QueryTradeFlowVo;
 import com.fr.chain.vo.trade.Res_QueryTradeOrderVo;
 import com.fr.chain.vo.trade.Res_SendPropertyVo;
+import com.fr.chain.vo.trade.Res_TradeOrderVo;
 import com.fr.chain.vo.trade.SendPropertyVo;
+import com.fr.chain.vo.trade.TradeOrderVo;
 
 @Slf4j
 @Service("tradeOrderService")
@@ -63,6 +70,95 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	UpdateTradeOrderService updateTradeOrderService;
 	
 	@Override
+	public void createTradeOrder(Message msg,TradeOrderVo msgVo,Res_TradeOrderVo res_TradeOrderVo){
+		String openId = msg.getOpenid();
+		String productId = msgVo.getProductid();
+		String count = msgVo.getCount();
+		String toOpenid = msgVo.getToopenid();
+		
+		Property srcProperty = new Property();
+		srcProperty.setOpenId(openId);
+		srcProperty.setProductId(productId);
+		srcProperty.setStatus(PropertyStatusEnum.可用.getValue());
+		//查询用户下产品所有资产
+		List<Property> listProperty = queryPropertyService.selectByExample(srcProperty);
+		if(listProperty == null || listProperty.size() == 0){
+			String errMsg = String.format("openId:%s,没有相应的资产!",openId);
+			throw new IllegalArgumentException(errMsg);
+		}		
+		//资产总数
+		BigDecimal tmpBD = new BigDecimal("0");
+		for(Property tmpPro : listProperty){
+			tmpBD  =tmpBD.add(new BigDecimal(tmpPro.getCount()));
+		}
+		BigDecimal tradeBD = new BigDecimal(count);
+		
+		String srcCount;
+		if(tmpBD.compareTo(tradeBD)==-1){
+			String errMsg = String.format("openId:%s,没有足够资产可以使用!",openId);
+			throw new IllegalArgumentException(errMsg);
+		}else if(tmpBD.compareTo(tradeBD)==0){
+			srcCount = "0";
+		}else{
+			srcCount = tradeBD.subtract(tmpBD)+"";
+		}
+		
+		ProductDigit productInfo =queryPropertyService.selectProductDigitByKey(productId);
+		if(productInfo==null){
+			String errMsg = String.format("productId:%s,系统无该资产!",productId);
+			throw new IllegalArgumentException(errMsg);
+		}
+		
+		TradeOrder orderRecord = getOrderByProduct(productInfo, openId, toOpenid, count, TradeTypeEnum.资产转移.getValue());
+		//创建订单
+		createTradeOrderService.insert(orderRecord);
+		String srcAddress=IDGenerator.nextID();
+		String receAddress=IDGenerator.nextID();
+		//创建资产
+		createPropertyService.inserProperty4Trans(orderRecord, srcCount, srcAddress, tradeBD+"", receAddress);
+		//创建流水
+		createTradeOrderService.insertFolw4Trans(orderRecord);
+		
+		res_TradeOrderVo.setOpenid(openId);
+		res_TradeOrderVo.setToopenid(toOpenid);
+		res_TradeOrderVo.setCount(count);
+		res_TradeOrderVo.setProductid(productId);
+		res_TradeOrderVo.setTradeid(orderRecord.getOrderId());
+	}
+	
+	@Override
+	public void queryAndCreateTradeFlow(Message msg, QueryTradeFlowVo msgVo, Res_QueryTradeFlowVo res_QueryTradeFlowVo ){
+		
+		TradeFlow flowInfo = new TradeFlow();
+		flowInfo.setOpenId(msg.getOpenid());
+		flowInfo.setPropertyType(msgVo.getPropertytype());
+		if(!StringUtil.isBlank(msgVo.getProductid())){
+			flowInfo.setProductId(msgVo.getProductid());
+		}
+		
+		List<TradeFlow> tradeFlowList = queryTradeOrderService.selectByExample(flowInfo);
+		
+		if(tradeFlowList == null || tradeFlowList.size() == 0){
+			//String errMsg = String.format("没有查询到相应的结果!");
+			throw new IllegalArgumentException("没有查询到相应的结果!");
+		}						
+		//创建返回报文
+		for(TradeFlow tradeFlow:tradeFlowList){ 
+			Res_QueryTradeFlowVo.TradeOrderData tradeFlowData = new Res_QueryTradeFlowVo.TradeOrderData();
+			//BeanUtils.copyProperties(tradeOrderData, tradeOrder);
+			tradeFlowData.setPropertytype(tradeFlow.getPropertyType());
+			tradeFlowData.setPropertyname(tradeFlow.getPropertyName());
+			tradeFlowData.setProductid(tradeFlow.getProductId());
+			tradeFlowData.setSigntype(tradeFlow.getSigntype());
+			tradeFlowData.setTradetype(tradeFlow.getTradeType()+"");
+			tradeFlowData.setUnit(tradeFlow.getUnit());
+			tradeFlowData.setCount(tradeFlow.getCount());
+			res_QueryTradeFlowVo.getData().add(tradeFlowData);
+		}
+	}
+	
+	
+	@Override
 	public void queryAndCreateTradeOrder(Message msg, QueryTradeOrderVo msgVo, Res_QueryTradeOrderVo res_QueryTradeOrderVo ){
 		TradeOrder tradeOrder= new TradeOrder();
 		tradeOrder.setMerchantId(msg.getMerchantid());
@@ -71,9 +167,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 		tradeOrder.setProductId(msgVo.getProductid());
 		tradeOrder.setPropertyType(msgVo.getPropertytype());						
 		tradeOrder.setProductId(msgVo.getProductid());
-		tradeOrder.setIsDigit(msgVo.getIsselfsupport());	
-		tradeOrder.setIsSelfSupport(msgVo.getIsselfsupport());
-		tradeOrder.setSigntype(msgVo.getSigntype());
+//		tradeOrder.setIsDigit(msgVo.getIsselfsupport());s
 		List<TradeOrder> tradeOrderList = queryTradeOrderService.selectByExample(tradeOrder);
 		if(tradeOrderList == null || tradeOrderList.size() == 0){
 			//String errMsg = String.format("没有查询到相应的结果!");
@@ -366,6 +460,39 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 		
 		return info;
 		
+	}
+	/**
+	 * 根据资产信息得到订单
+	 * @param productInfo
+	 * @param fromOpenid
+	 * @param toOpenid
+	 * @param count
+	 * @param tradeType
+	 * @return
+	 */
+	public TradeOrder getOrderByProduct(ProductDigit productInfo,String fromOpenid,String toOpenid,String count,int tradeType){
+		TradeOrder orderInfo = new TradeOrder();
+		orderInfo.setOrderId(IDGenerator.nextID());
+		orderInfo.setMerchantId(productInfo.getMerchantId());
+		orderInfo.setAppId(productInfo.getAppId());
+		orderInfo.setOpenId(fromOpenid);
+		orderInfo.setFromOpenId(fromOpenid);
+		orderInfo.setToOpenId(toOpenid);
+		orderInfo.setOriginOpenid(productInfo.getOriginOpenid());
+		orderInfo.setProductId(productInfo.getProductId());
+		orderInfo.setPropertyType(productInfo.getPropertyType()+"");
+		orderInfo.setProductDesc(productInfo.getProductDesc());
+		orderInfo.setPropertyName(productInfo.getPropertyName());
+		orderInfo.setUnit(productInfo.getUnit()+"");
+		orderInfo.setMincount(productInfo.getMinCount());
+		orderInfo.setCount(count);
+		orderInfo.setUrl(productInfo.getUrl());
+		orderInfo.setDescription(productInfo.getDescription());
+		orderInfo.setCreateTime(DateUtil.getSystemDate());
+		orderInfo.setTradeType(tradeType);
+		orderInfo.setStatus(TradeStatusEnum.成功.getValue());
+		
+		return orderInfo;
 	}
 	
 }
