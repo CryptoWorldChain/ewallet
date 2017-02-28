@@ -371,8 +371,8 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 		orderRecord.setUrl(infoRecord.getUrl());
 		orderRecord.setDescription(infoRecord.getDescription());
 		orderRecord.setCreateTime(DateUtil.getSystemDate());
-		orderRecord.setTradeType(TradeTypeEnum.丢弃资产.getValue());
-		orderRecord.setStatus(TradeStatusEnum.处理中.getValue());
+		orderRecord.setTradeType(Integer.parseInt(msgVo.getTradetype()));
+		orderRecord.setStatus(TradeStatusEnum.成功.getValue());//***接入链子前，订单认为成功
 		createTradeOrderService.insert(orderRecord);
 		
 		//更新资产
