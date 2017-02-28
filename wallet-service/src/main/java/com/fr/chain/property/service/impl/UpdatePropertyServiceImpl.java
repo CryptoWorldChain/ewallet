@@ -51,7 +51,7 @@ public class UpdatePropertyServiceImpl implements UpdatePropertyService {
 		}else{
 			return false;
 		}
-		propertySys.setStatus(PropertyStatusEnum.锁定.getValue());
+		propertySys.setStatus(PropertyStatusEnum.不可用.getValue());//***接入链子前，认为成功,更新不可用
 		propertyDao.updateByPrimaryKey(propertySys);
 		
 		
@@ -59,7 +59,7 @@ public class UpdatePropertyServiceImpl implements UpdatePropertyService {
 		Property propertyGetOwner  = propertySys;
 		propertyGetOwner.setPropertyId(IDGenerator.nextID());
 		propertyGetOwner.setOpenId(record.getToOpenId());
-		propertyGetOwner.setStatus(PropertyStatusEnum.锁定.getValue());
+		propertyGetOwner.setStatus(PropertyStatusEnum.可用.getValue());//***接入链子前，认为成功
 		propertyGetOwner.setAddress(address);
 		propertyDao.insert(propertyGetOwner);
 		

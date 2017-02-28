@@ -21,6 +21,7 @@ public class Res_QueryTradeFlowVo extends MsgBody{
 		private String tradetype;
 		private String unit;
 		private String count;
+		private String tradetime;
 		public TradeOrderData(){			
 		}
 	}

@@ -11,6 +11,7 @@ import org.apache.poi.ss.formula.functions.Count;
 import org.springframework.stereotype.Service;
 
 import com.fr.chain.enums.PropertyStatusEnum;
+import com.fr.chain.enums.PropertyTypeEnum;
 import com.fr.chain.enums.TradeStatusEnum;
 import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.facadeservice.trade.TradeOrderService;
@@ -33,6 +34,7 @@ import com.fr.chain.trade.service.CreateTradeOrderService;
 import com.fr.chain.trade.service.DelTradeOrderService;
 import com.fr.chain.trade.service.QueryTradeOrderService;
 import com.fr.chain.trade.service.UpdateTradeOrderService;
+import com.fr.chain.utils.DateStyle;
 import com.fr.chain.utils.DateUtil;
 import com.fr.chain.utils.IDGenerator;
 import com.fr.chain.utils.NumberUtil;
@@ -153,6 +155,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 			tradeFlowData.setTradetype(tradeFlow.getTradeType()+"");
 			tradeFlowData.setUnit(tradeFlow.getUnit());
 			tradeFlowData.setCount(tradeFlow.getCount());
+			tradeFlowData.setTradetime(DateUtil.format(tradeFlow.getCreateTime(), DateStyle.YYYY_MM_DD_HH_MM_SS));
 			res_QueryTradeFlowVo.getData().add(tradeFlowData);
 		}
 	}
@@ -209,14 +212,18 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 			//1数字 0个性
 			
 			ProductPublicInfoVo publicInfo =  getPublicProduct(msgVo, productId);
+			if(publicInfo==null){
+				String errMsg = String.format("productId:%s,没有查询到该资产ID!",packageData.getProductid());
+				throw new IllegalArgumentException(errMsg);
+			}
 			
 			criteria.andProductIdEqualTo(packageData.getProductid());
-			criteria.andStatusEqualTo(1);//1可用 0不可用
+			criteria.andStatusEqualTo(PropertyStatusEnum.可用.getValue());//1可用 0不可用
 			if("1".equals(publicInfo.getChainType())){
 				
 				List<Property> listProperty = queryPropertyService.selectByExample(propertyExample);
 				if(listProperty.size()<1){
-					String errMsg = String.format("productId:%s,没有查询到相应的结果!",packageData.getProductid());
+					String errMsg = String.format("productId:%s,此用户没有相应资产!",packageData.getProductid());
 					throw new IllegalArgumentException(errMsg);
 				}
 				//计算productid下所有count值
@@ -226,6 +233,11 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 				}
 				diff = diff - NumberUtil.toInt(packageData.getCount()); 
 				
+				
+				int propertytype = PropertyTypeEnum.数字资产.getValue();
+				if(!"1".equals(publicInfo.getIsdigit())){
+					propertytype = PropertyTypeEnum.个性资产.getValue();
+				}
 				//生成新订单
 				String orderId = IDGenerator.nextID();
 				TradeOrder orderRecord =  new TradeOrder();
@@ -237,7 +249,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 				orderRecord.setToOpenId("sysTemp");
 				orderRecord.setOriginOpenid(publicInfo.getOriginOpenid());	
 				orderRecord.setProductId(packageData.getProductid());
-				orderRecord.setPropertyType(publicInfo.getIsdigit());
+				orderRecord.setPropertyType(propertytype+"");
 //				orderRecord.setIsSelfSupport(isSelfSupport);
 				orderRecord.setProductDesc(publicInfo.getProductdesc());
 				orderRecord.setIsDigit(publicInfo.getIsdigit());
@@ -252,7 +264,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 				orderRecord.setAddress(orderId);
 				orderRecord.setCreateTime(DateUtil.getSystemDate());
 				orderRecord.setTradeType(TradeTypeEnum.发送资产.getValue());
-				orderRecord.setStatus(1);
+				orderRecord.setStatus(TradeStatusEnum.成功.getValue());//***接链子钱，认为成功
 				
 				createTradeOrderService.insert(orderRecord);
 				
@@ -281,7 +293,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 				Res_SendPropertyVo.PackageData resPackageData = new Res_SendPropertyVo.PackageData();
 				resPackageData.setProductid(packageData.getProductid());
 				resPackageData.setCount(packageData.getCount());
-				resPackageData.setTradeId(orderId);
+				resPackageData.setOrderid(orderId);
 				res_SendPropertyVo.getData().add(resPackageData);							
 			}
 		}
@@ -295,7 +307,7 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 		List<GetPropertyVo.PackageData> packageDataList  =  msgVo.getData();
 		for(GetPropertyVo.PackageData packageData :packageDataList){
 			
-			String orderId = packageData.getOrderId();
+			String orderId = packageData.getOrderid();
 			
 			TradeOrderKey orderKey = new TradeOrderKey();
 			orderKey.setOrderId(orderId);
@@ -304,15 +316,15 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 				String errMsg = String.format("没有查询到tradeId=%s相应的结果!",orderId);
 				throw new IllegalArgumentException(errMsg);
 			}
-			if(orderRecord.getStatus()!=TradeStatusEnum.处理中.getValue()&&orderRecord.getTradeType()==TradeTypeEnum.发送资产.getValue()){
-				String errMsg = String.format("订单tradeId=%s状态不正确!",orderId);
+			if(orderRecord.getTradeType()!=TradeTypeEnum.发送资产.getValue()){
+				String errMsg = String.format("订单tradeId=%s交易类型不正确!",orderId);
 				throw new IllegalArgumentException(errMsg);
 			}
 			
 			//订单更新状态
 			orderRecord.setToOpenId(msg.getOpenid());
 			orderRecord.setTradeType(TradeTypeEnum.领取资产.getValue());
-			orderRecord.setStatus(TradeStatusEnum.处理中.getValue());
+			orderRecord.setStatus(TradeStatusEnum.成功.getValue());//***调用链子前，认为成功
 			orderRecord.setUpdateTime(DateUtil.getSystemDate());
 			updateTradeOrderService.updateTradeOrder(orderRecord);
 			
@@ -424,8 +436,11 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 	public ProductPublicInfoVo getPublicProduct(SendPropertyVo msgVo,String productId){
 		
 		ProductPublicInfoVo info = new ProductPublicInfoVo();
-		if(("1").equals(msgVo.getIsDigit())){
+		if(("1").equals(msgVo.getPropertytype())){
 			ProductDigit digitProduct = queryPropertyService.selectProductDigitByKey(productId);
+			if(digitProduct==null){
+				return null;
+			}
 			info.setProductId(productId);
 			info.setMerchantId(digitProduct.getMerchantId());
 			info.setAppId(digitProduct.getAppId());
@@ -438,9 +453,13 @@ public class TradeOrderServiceImpl implements TradeOrderService {
 			info.setUrl(digitProduct.getUrl());
 			info.setDescription(digitProduct.getDescription());
 			info.setIsdigit(1+"");
+//			info.setpro
 			info.setChainType(digitProduct.getChainType()+"");
 		}else{
 			ProductInfo infoProduct = queryPropertyService.selectProductInfoByKey(productId);
+			if(infoProduct==null){
+				return null;
+			}
 			info.setProductId(productId);
 			info.setMerchantId(infoProduct.getMerchantId());
 			info.setAppId(infoProduct.getAppId());

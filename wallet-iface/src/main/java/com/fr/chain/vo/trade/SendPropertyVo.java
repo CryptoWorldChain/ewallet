@@ -10,7 +10,7 @@ import lombok.Data;
 public class SendPropertyVo extends MsgBody{
 	
 	private String packageid;
-	private String isDigit;
+	private String propertytype;
 	
 	private List<PackageData> data;
 	
@@ -18,8 +18,6 @@ public class SendPropertyVo extends MsgBody{
 	public static class PackageData {
 		
 		private String productid;
-		
-		private String propertycode;
 		
 		private String count;
 

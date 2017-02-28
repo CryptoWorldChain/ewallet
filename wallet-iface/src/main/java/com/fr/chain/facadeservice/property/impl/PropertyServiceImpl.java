@@ -1,6 +1,5 @@
 package com.fr.chain.facadeservice.property.impl;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -10,14 +9,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.fr.chain.enums.PropertyStatusEnum;
+import com.fr.chain.enums.PropertyTypeEnum;
+import com.fr.chain.enums.TradeStatusEnum;
 import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.facadeservice.property.PropertyService;
 import com.fr.chain.message.Message;
 import com.fr.chain.message.MessageException;
 import com.fr.chain.property.db.entity.ProductInfo;
-import com.fr.chain.property.db.entity.ProductInfoKey;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.property.db.entity.PropertyExample;
+import com.fr.chain.property.db.entity.PropertyExample.Criteria;
 import com.fr.chain.property.db.entity.PropertyKey;
 import com.fr.chain.property.service.CreatePropertyService;
 import com.fr.chain.property.service.DelPropertyService;
@@ -89,7 +90,7 @@ public class PropertyServiceImpl implements PropertyService {
 //		orderRecord.setAddress(address);
 		orderRecord.setCreateTime(DateUtil.getSystemDate());
 		orderRecord.setTradeType(TradeTypeEnum.创建资产.getValue());
-		orderRecord.setStatus(1);
+		orderRecord.setStatus(TradeStatusEnum.成功.getValue());//**接入链子前，先认为成功
 		
 		//插入新的订单
 		createTradeOrderService.insert(orderRecord);
@@ -111,18 +112,29 @@ public class PropertyServiceImpl implements PropertyService {
 	 */
 	@Override
 	public void queryProperty(Message msg, QueryPropertyVo msgVo, Res_QueryPropertyVo res_QueryPropertyVo ){
-		Property property= new Property();
-		property.setMerchantId(msg.getMerchantid());
-		property.setOpenId(msg.getOpenid()); 
-		property.setAppId(msg.getAppid());	
-		property.setPropertyType(msgVo.getPropertytype());
+//		Property property= new Property();
+//		property.setMerchantId(msg.getMerchantid());
+//		property.setOpenId(msg.getOpenid()); 
+//		property.setAppId(msg.getAppid());	
+//		property.setPropertyType(msgVo.getPropertytype());
+//		
+//		
+		PropertyExample example = new PropertyExample();
+		Criteria criteria = example.createCriteria();
+		criteria.andMerchantIdEqualTo(msg.getMerchantid());
+		criteria.andOpenIdEqualTo(msg.getOpenid());
+		criteria.andAppIdEqualTo(msg.getAppid());
+		criteria.andPropertyTypeEqualTo(msgVo.getPropertytype());
+		
 		if(!StringUtil.isBlank(msgVo.getProductid())){
-			property.setProductId(msgVo.getProductid());
+			criteria.andPropertyIdEqualTo(msgVo.getProductid());
 		}
 		if(!StringUtil.isBlank(msgVo.getStatus())){
-			property.setStatus(Integer.parseInt(msgVo.getStatus()));
+			criteria.andStatusEqualTo(Integer.parseInt(msgVo.getStatus()));
+		}else{
+			criteria.andStatusNotEqualTo(PropertyStatusEnum.不可用.getValue());
 		}
-		List<Property> propertyList = queryPropertyService.selectByExample(property);
+		List<Property> propertyList = queryPropertyService.selectByExample(example);
 		
 		if(propertyList != null && propertyList.size()>0){ 
 			for(Property tmpProperty : propertyList){
@@ -192,7 +204,7 @@ public class PropertyServiceImpl implements PropertyService {
 		info.setMerchantId(msg.getMerchantid());
 		info.setAppId(msg.getAppid());
 		info.setProductDesc(msgVo.getProductdesc());
-//		info.setPropertyType(Integer.parseInt(msgVo.getPropertytype()));
+		info.setPropertyType(PropertyTypeEnum.个性资产.getValue());//添加的都是个性资产
 		info.setOriginOpenid(msg.getOpenid());
 		info.setSignType(msgVo.getSigntype());
 		info.setPropertyName(msgVo.getPropertyname());

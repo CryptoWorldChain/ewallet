@@ -12,8 +12,8 @@ public class GetPropertyVo extends MsgBody{
 	private List<PackageData> data;
 	@Data
 	public static class PackageData {
-		private String productid;
-		private String orderId;
+//		private String productid;
+		private String orderid;
 		public PackageData(){
 			
 		}

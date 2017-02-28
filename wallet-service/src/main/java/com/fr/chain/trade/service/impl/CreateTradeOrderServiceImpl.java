@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.fr.chain.enums.PropertyTypeEnum;
 import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.trade.db.dao.TradeFlowDao;
@@ -132,7 +133,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		srcFlow.setProductId(orderRecord.getProductId());
 		srcFlow.setTallyTag(0);
 		srcFlow.setCount(orderRecord.getCount());
-		srcFlow.setTradeType(2);
+		srcFlow.setTradeType(TradeTypeEnum.发送资产.getValue());
 		srcFlow.setCreateTime(DateUtil.getSystemDate());
 		
 		srcFlow.setOriginOpenid(orderRecord.getOriginOpenid());
@@ -142,7 +143,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		srcFlow.setMincount(orderRecord.getMincount());
 		srcFlow.setUrl(orderRecord.getUrl());
 		srcFlow.setDescription(orderRecord.getDescription());
-		srcFlow.setPropertyType(orderRecord.getIsDigit());
+		srcFlow.setPropertyType(orderRecord.getPropertyType());
 		tradeFlowDao.insert(srcFlow);
 		
 		TradeFlow sysFlow = new TradeFlow();
@@ -151,10 +152,10 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		sysFlow.setOpenId("OpenId_sys");
 		sysFlow.setMerchantId(orderRecord.getMerchantId());
 		sysFlow.setAppId(orderRecord.getAppId());
-		srcFlow.setProductId(orderRecord.getProductId());
+		sysFlow.setProductId(orderRecord.getProductId());
 		sysFlow.setTallyTag(1);
 		sysFlow.setCount(orderRecord.getCount());
-		sysFlow.setTradeType(2);
+		sysFlow.setTradeType(TradeTypeEnum.发送资产.getValue());
 		sysFlow.setCreateTime(DateUtil.getSystemDate());
 		
 		sysFlow.setOriginOpenid(orderRecord.getOriginOpenid());
@@ -164,7 +165,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		sysFlow.setMincount(orderRecord.getMincount());
 		sysFlow.setUrl(orderRecord.getUrl());
 		sysFlow.setDescription(orderRecord.getDescription());
-		sysFlow.setPropertyType(orderRecord.getIsDigit());
+		sysFlow.setPropertyType(orderRecord.getPropertyType());
 		tradeFlowDao.insert(sysFlow);
 		
 		return true;
@@ -195,7 +196,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		sysFlow.setMincount(orderRecord.getMincount());
 		sysFlow.setUrl(orderRecord.getUrl());
 		sysFlow.setDescription(orderRecord.getDescription());
-		sysFlow.setPropertyType(orderRecord.getIsDigit());
+		sysFlow.setPropertyType("1".equals(orderRecord.getIsDigit())?PropertyTypeEnum.数字资产.getValue()+"":PropertyTypeEnum.个性资产.getValue()+"");
 		tradeFlowDao.insert(sysFlow);
 		
 		TradeFlow receFlow = new TradeFlow();
@@ -217,7 +218,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		receFlow.setMincount(orderRecord.getMincount());
 		receFlow.setUrl(orderRecord.getUrl());
 		receFlow.setDescription(orderRecord.getDescription());
-		receFlow.setPropertyType(orderRecord.getIsDigit());
+		receFlow.setPropertyType("1".equals(orderRecord.getIsDigit())?PropertyTypeEnum.数字资产.getValue()+"":PropertyTypeEnum.个性资产.getValue()+"");
 		tradeFlowDao.insert(receFlow);
 		
 		return true;

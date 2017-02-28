@@ -4,9 +4,11 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.hibernate.validator.internal.xml.PropertyType;
 import org.springframework.stereotype.Service;
 
 import com.fr.chain.enums.PropertyStatusEnum;
+import com.fr.chain.enums.PropertyTypeEnum;
 import com.fr.chain.property.db.dao.ProductInfoDao;
 import com.fr.chain.property.db.dao.PropertyDao;
 import com.fr.chain.property.db.entity.ProductInfo;
@@ -75,6 +77,10 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 	 */
 	@Override
 	public boolean inserPropertyFreezen(TradeOrder orderRecord,int srcCount,String srcAddress,int receCount,String receAddress){
+//		int propertytype = PropertyTypeEnum.数字资产.getValue();
+//		if(!"1".equals(orderRecord.getIsDigit())){
+//			propertytype = PropertyTypeEnum.个性资产.getValue();
+//		}
 		//srcCount等于0，原有商品资产全部送出
 		//srcCount非0，原有商品资产有剩余
 		if(srcCount!=0){
@@ -87,7 +93,7 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 			srcProperty.setProductId(orderRecord.getProductId());
 			srcProperty.setAddress(srcAddress);
 			srcProperty.setCount(srcCount+"");
-			srcProperty.setStatus(PropertyStatusEnum.锁定.getValue());
+			srcProperty.setStatus(PropertyStatusEnum.可用.getValue());//***接入链子钱，认为成功
 			srcProperty.setCreateTime(DateUtil.getSystemDate());
 			
 			srcProperty.setOriginOpenid(orderRecord.getOriginOpenid());
@@ -97,7 +103,7 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 			srcProperty.setMinCount(orderRecord.getMincount());
 			srcProperty.setUrl(orderRecord.getUrl());
 			srcProperty.setDescription(orderRecord.getDescription());
-			srcProperty.setPropertyType(orderRecord.getIsDigit());
+			srcProperty.setPropertyType(orderRecord.getPropertyType());
 			propertyDao.insert(srcProperty);
 		}
 		Property sysProperty = new Property();
@@ -109,7 +115,8 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 		sysProperty.setProductId(orderRecord.getProductId());
 		sysProperty.setAddress(receAddress);
 		sysProperty.setCount(receCount+"");
-		sysProperty.setStatus(PropertyStatusEnum.锁定.getValue());
+		sysProperty.setStatus(PropertyStatusEnum.可用.getValue());
+		sysProperty.setCreateTime(DateUtil.getSystemDate());
 		
 		sysProperty.setOriginOpenid(orderRecord.getOriginOpenid());
 		sysProperty.setSignType(orderRecord.getSigntype());
@@ -118,7 +125,7 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 		sysProperty.setMinCount(orderRecord.getMincount());
 		sysProperty.setUrl(orderRecord.getUrl());
 		sysProperty.setDescription(orderRecord.getDescription());
-		sysProperty.setPropertyType(orderRecord.getIsDigit());
+		sysProperty.setPropertyType(orderRecord.getPropertyType());
 		propertyDao.insert(sysProperty);
 		
 		return true;
