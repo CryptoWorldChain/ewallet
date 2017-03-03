@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fr.chain.message.MsgBody;
-import com.fr.chain.vo.trade.SendPropertyVo.PackageData;
 
 import lombok.Data;
 

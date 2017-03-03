@@ -12,17 +12,9 @@ import com.fr.chain.vo.wallet.Res_QueryWalletAdressVo;
 
 public interface WalletService {
 	
-    public int insert(WalletAdress info);
+	public List<String> getWalletAdress(String walletCode, String OpenId);
 	
-	public int batchInsert(List<WalletAdress> records);
-	
-	
-	public int deleteByPrimaryKey (WalletAdressKey key);
-	
-	public List<WalletAdress>  selectByExample(WalletAdress info);
-	public List<WalletAdress>  selectByExample(WalletAdressExample info);
-	
-	public int updateByExampleSelective (WalletAdress record, WalletAdressExample example);
+	public String getNewWalletAdress(String walletCode, String OpenId );
 
 	public void getAndCreateWallet(Message msg, QueryWalletAdressVo msgVo, Res_QueryWalletAdressVo res_QueryWalletAdressVo);
 	

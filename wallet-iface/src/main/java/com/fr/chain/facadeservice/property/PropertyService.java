@@ -26,10 +26,19 @@ public interface PropertyService {
 	
 	public int updateByExampleSelective (Property record, PropertyExample example);
 	
+	public int updateByPrimaryKeySelective (Property record);
+	
+	
 
 	public void createProperty(Message msg, CreatePropertyVo msgVo, Res_CreatePropertyVo res_CreatePropertyVo,ProductInfo productInfo);
 	public void queryProperty(Message msg, QueryPropertyVo msgVo, Res_QueryPropertyVo res_QueryPropertyVo);
-	//根据主键查询资产
+	
+	/**
+	 * 查找个性资产基本信息，如果没有查到，则新添加该资产的基础信息
+	 * @param msg
+	 * @param msgVo
+	 * @return
+	 */
 	public ProductInfo selectProduct4CreateProperty(Message msg, CreatePropertyVo msgVo);
 	
 }

@@ -60,6 +60,12 @@ public class PropertyCtrl extends BasicCtrl {
 	private static DataService mysqlDataService = 
 			(DataService)BeanFactory.getBean("mysqlDataService");
 	
+	/**
+	 * 创建资产（数字资产无法创建资产，通过购买或转入添加）
+	 * @param req
+	 * @param resp
+	 * @return
+	 */
 	@RequestMapping(value = "/v1_00/createproperty", method = RequestMethod.POST)
 	@ResponseBody
 	public Object createProperty(HttpServletRequest req, HttpServletResponse resp)  {

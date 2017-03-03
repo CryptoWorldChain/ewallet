@@ -57,11 +57,6 @@ public class PropertyServiceImpl implements PropertyService {
 	@Override
 	public void createProperty(Message msg, CreatePropertyVo msgVo, Res_CreatePropertyVo res_CreatePropertyVo ,
 			ProductInfo productInfo) {
-		
-		//模拟生成地址,调用底层区块链生成地址
-		String address = ""; //钱包地址
-		address = IDGenerator.nextID();
-				
 		//生成新的订单
 		String orderId = IDGenerator.nextID();
 		TradeOrder orderRecord =  new TradeOrder();
@@ -74,7 +69,6 @@ public class PropertyServiceImpl implements PropertyService {
 		orderRecord.setOriginOpenid(productInfo.getOriginOpenid());
 		orderRecord.setProductId(productInfo.getProductId());
 		orderRecord.setPropertyType(productInfo.getPropertyType()+"");
-//		orderRecord.setIsSelfSupport(msgVo.getIsselfsupport());
 		orderRecord.setProductDesc(productInfo.getProductDesc());
 		orderRecord.setIsDigit(0+"");
 		orderRecord.setSigntype(productInfo.getSignType());
@@ -83,14 +77,10 @@ public class PropertyServiceImpl implements PropertyService {
 		orderRecord.setMincount(productInfo.getMinCount());
 		orderRecord.setCount(msgVo.getCount());
 		orderRecord.setUrl(productInfo.getUrl());
-//		if(msgVo.getAmount()!=null){
-//			orderRecord.setAmount(new BigDecimal(msgVo.getAmount()));
-//		}
 		orderRecord.setDescription(productInfo.getDescription());
-//		orderRecord.setAddress(address);
 		orderRecord.setCreateTime(DateUtil.getSystemDate());
 		orderRecord.setTradeType(TradeTypeEnum.创建资产.getValue());
-		orderRecord.setStatus(TradeStatusEnum.成功.getValue());//**接入链子前，先认为成功
+		orderRecord.setStatus(TradeStatusEnum.成功.getValue());//接入区块链之前，先认为成功
 		
 		//插入新的订单
 		createTradeOrderService.insert(orderRecord);
@@ -112,20 +102,12 @@ public class PropertyServiceImpl implements PropertyService {
 	 */
 	@Override
 	public void queryProperty(Message msg, QueryPropertyVo msgVo, Res_QueryPropertyVo res_QueryPropertyVo ){
-//		Property property= new Property();
-//		property.setMerchantId(msg.getMerchantid());
-//		property.setOpenId(msg.getOpenid()); 
-//		property.setAppId(msg.getAppid());	
-//		property.setPropertyType(msgVo.getPropertytype());
-//		
-//		
 		PropertyExample example = new PropertyExample();
 		Criteria criteria = example.createCriteria();
 		criteria.andMerchantIdEqualTo(msg.getMerchantid());
 		criteria.andOpenIdEqualTo(msg.getOpenid());
 		criteria.andAppIdEqualTo(msg.getAppid());
 		criteria.andPropertyTypeEqualTo(msgVo.getPropertytype());
-		
 		if(!StringUtil.isBlank(msgVo.getProductid())){
 			criteria.andPropertyIdEqualTo(msgVo.getProductid());
 		}
@@ -138,7 +120,6 @@ public class PropertyServiceImpl implements PropertyService {
 		
 		if(propertyList != null && propertyList.size()>0){ 
 			for(Property tmpProperty : propertyList){
-				//BeanUtils.copyProperties(propertyInfo, tmpProperty); //拷贝
 				Res_QueryPropertyVo.PropertyInfo propertyInfo = new Res_QueryPropertyVo.PropertyInfo();
 				propertyInfo.setPropertytype(tmpProperty.getPropertyType());
 				propertyInfo.setProductid(tmpProperty.getProductId());
@@ -151,7 +132,7 @@ public class PropertyServiceImpl implements PropertyService {
 				propertyInfo.setUrl(tmpProperty.getUrl());
 				propertyInfo.setDescription(tmpProperty.getDescription());
 				propertyInfo.setStatus(tmpProperty.getStatus()+"");
-				res_QueryPropertyVo.getPropertyInfoList().add(propertyInfo);
+				res_QueryPropertyVo.getPropertyinfolist().add(propertyInfo);
 			}
 		}
 	}
@@ -185,39 +166,48 @@ public class PropertyServiceImpl implements PropertyService {
 	public int updateByExampleSelective (Property record, PropertyExample example){
 		return updatePropertyService.updateByExampleSelective(record,example);
 	}
+	
+	public int updateByPrimaryKeySelective (Property record){
+		return updatePropertyService.updateByPrimaryKeySelective(record);
+	}
+	
 	@Override
 	public ProductInfo selectProduct4CreateProperty(Message msg, CreatePropertyVo msgVo){
 		ProductInfo info = null;
-		if(!StringUtil.isBlank(msgVo.getProductid())){
+		//如果productid不为空,则跟据productid查找个性资产的基本信息是否存在
+		//查询到个性资产基本信息,则直接返回, 否则添加该个性资产的基本信息
+		if(StringUtil.isNotBlank(msgVo.getProductid())){
 			info = queryPropertyService.selectProductInfoByKey(msgVo.getProductid());
+			if(info == null){
+				//一旦productid不为空,则说明之前创建过,如果没有查询到,则说明productid错误
+				throw new MessageException("没有查询到该资产基本信息productid:" + msgVo.getProductid());
+			}else{
+				if(!info.getOriginOpenid().equals(msg.getOpenid())){
+					throw new MessageException("没有权限创建此资产");
+				}				
+			}			
+		}else{
+			//创建个性资产的基本信息
+			String productid =IDGenerator.nextID(); 
+			info = new ProductInfo();
+			info.setProductId(productid);
+			info.setMerchantId(msg.getMerchantid());
+			info.setAppId(msg.getAppid());
+			info.setProductDesc(msgVo.getProductdesc());
+			info.setPropertyType(PropertyTypeEnum.个性资产.getValue());//添加的都是个性资产
+			info.setOriginOpenid(msg.getOpenid());
+			info.setSignType(msgVo.getSigntype());
+			info.setPropertyName(msgVo.getPropertyname());
+			info.setUnit(msgVo.getUnit());
+			info.setMinCount(msgVo.getMincount());
+			info.setUrl(msgVo.getUrl());
+			info.setCreateTime(DateUtil.getSystemDate());
+			info.setStatus(1);
+			createPropertyService.insertProductInfo(info);
 		}
 		
-		if(info!=null&&!info.getOriginOpenid().equals(msg.getOpenid())){
-			throw new MessageException("没有权限创建资产");
-		}else if(info!=null){
-			return info;
-		}
-		//创建个新的productinfo
-		String productid =IDGenerator.nextID(); 
-		info = new ProductInfo();
-		info.setProductId(productid);
-		info.setMerchantId(msg.getMerchantid());
-		info.setAppId(msg.getAppid());
-		info.setProductDesc(msgVo.getProductdesc());
-		info.setPropertyType(PropertyTypeEnum.个性资产.getValue());//添加的都是个性资产
-		info.setOriginOpenid(msg.getOpenid());
-		info.setSignType(msgVo.getSigntype());
-		info.setPropertyName(msgVo.getPropertyname());
-		info.setUnit(msgVo.getUnit());
-		info.setMinCount(msgVo.getMincount());
-		info.setUrl(msgVo.getUrl());
-		info.setDescription(msgVo.getDescription());
-		info.setCreateTime(DateUtil.getSystemDate());
-		info.setStatus(1);
-		
-		createPropertyService.insertProductInfo(info);
-		
-		msgVo.setProductid(productid);
+		//返回新建的productid
+		msgVo.setProductid(info.getProductId());
 		
 		return info;
 	}

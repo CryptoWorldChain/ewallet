@@ -7,6 +7,7 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import com.fr.chain.enums.PropertyTypeEnum;
+import com.fr.chain.enums.SystemOpenIdEnum;
 import com.fr.chain.enums.TradeTypeEnum;
 import com.fr.chain.property.db.entity.Property;
 import com.fr.chain.trade.db.dao.TradeFlowDao;
@@ -107,7 +108,6 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		tradeFlow.setMincount(orderRecord.getMincount());
 		tradeFlow.setCount(orderRecord.getCount());
 		tradeFlow.setUrl(orderRecord.getUrl());
-//		tradeFlow.setAmount(orderRecord.getAmount());
 		tradeFlow.setDescription(orderRecord.getDescription());
 		tradeFlow.setAddress(orderRecord.getAddress());
 		tradeFlow.setTradeType(orderRecord.getTradeType());
@@ -149,7 +149,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		TradeFlow sysFlow = new TradeFlow();
 		sysFlow.setFlowId(IDGenerator.nextID());
 		sysFlow.setOrderId(orderRecord.getOrderId());
-		sysFlow.setOpenId("OpenId_sys");
+		sysFlow.setOpenId(SystemOpenIdEnum.系统默认账户.getName());
 		sysFlow.setMerchantId(orderRecord.getMerchantId());
 		sysFlow.setAppId(orderRecord.getAppId());
 		sysFlow.setProductId(orderRecord.getProductId());
@@ -172,15 +172,14 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 	}
 	/**
 	 * 发送资产流水创建。
-	 * 1，系统减少资产流水
-	 * 2，获取人增加资产流水
+	 * 1，系统减少资产--流水
+	 * 2，获取人增加资产--流水
 	 */
 	public boolean insertFlow4Get(TradeOrder orderRecord){
-		
 		TradeFlow sysFlow = new TradeFlow();
 		sysFlow.setFlowId(IDGenerator.nextID());
 		sysFlow.setOrderId(orderRecord.getOrderId());
-		sysFlow.setOpenId("OpenId_sys");
+		sysFlow.setOpenId(SystemOpenIdEnum.系统默认账户.getName());
 		sysFlow.setMerchantId(orderRecord.getMerchantId());
 		sysFlow.setAppId(orderRecord.getAppId());
 		sysFlow.setProductId(orderRecord.getProductId());
@@ -188,7 +187,6 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		sysFlow.setCount(orderRecord.getCount());
 		sysFlow.setTradeType(TradeTypeEnum.领取资产.getValue());
 		sysFlow.setCreateTime(DateUtil.getSystemDate());
-		
 		sysFlow.setOriginOpenid(orderRecord.getOriginOpenid());
 		sysFlow.setSigntype(orderRecord.getSigntype());
 		sysFlow.setPropertyName(orderRecord.getPropertyName());
@@ -210,7 +208,6 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		receFlow.setCount(orderRecord.getCount());
 		receFlow.setTradeType(TradeTypeEnum.领取资产.getValue());
 		receFlow.setCreateTime(DateUtil.getSystemDate());
-		
 		receFlow.setOriginOpenid(orderRecord.getOriginOpenid());
 		receFlow.setSigntype(orderRecord.getSigntype());
 		receFlow.setPropertyName(orderRecord.getPropertyName());
@@ -223,6 +220,59 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		
 		return true;
 	}
+	
+	/**
+	 * 退回资产流水创建。
+	 * 1，系统减少资产--流水
+	 * 2，获退回人增加资产--流水
+	 */
+	public boolean insertFlow4Refund(TradeOrder orderRecord){
+		TradeFlow sysFlow = new TradeFlow();
+		sysFlow.setFlowId(IDGenerator.nextID());
+		sysFlow.setOrderId(orderRecord.getOrderId());
+		sysFlow.setOpenId(SystemOpenIdEnum.系统默认账户.getName());
+		sysFlow.setMerchantId(orderRecord.getMerchantId());
+		sysFlow.setAppId(orderRecord.getAppId());
+		sysFlow.setProductId(orderRecord.getProductId());
+		sysFlow.setTallyTag(0);
+		sysFlow.setCount(orderRecord.getCount());
+		sysFlow.setTradeType(TradeTypeEnum.退回资产.getValue());
+		sysFlow.setCreateTime(DateUtil.getSystemDate());
+		sysFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		sysFlow.setSigntype(orderRecord.getSigntype());
+		sysFlow.setPropertyName(orderRecord.getPropertyName());
+		sysFlow.setUnit(orderRecord.getUnit());
+		sysFlow.setMincount(orderRecord.getMincount());
+		sysFlow.setUrl(orderRecord.getUrl());
+		sysFlow.setDescription(orderRecord.getDescription());
+		sysFlow.setPropertyType("1".equals(orderRecord.getIsDigit())?PropertyTypeEnum.数字资产.getValue()+"":PropertyTypeEnum.个性资产.getValue()+"");
+		tradeFlowDao.insert(sysFlow);
+		
+		TradeFlow receFlow = new TradeFlow();
+		receFlow.setFlowId(IDGenerator.nextID());
+		receFlow.setOrderId(orderRecord.getOrderId());
+		receFlow.setOpenId(orderRecord.getToOpenId());
+		receFlow.setMerchantId(orderRecord.getMerchantId());
+		receFlow.setAppId(orderRecord.getAppId());
+		receFlow.setProductId(orderRecord.getProductId());
+		receFlow.setTallyTag(1);
+		receFlow.setCount(orderRecord.getCount());
+		receFlow.setTradeType(TradeTypeEnum.退回资产.getValue());
+		receFlow.setCreateTime(DateUtil.getSystemDate());
+		receFlow.setOriginOpenid(orderRecord.getOriginOpenid());
+		receFlow.setSigntype(orderRecord.getSigntype());
+		receFlow.setPropertyName(orderRecord.getPropertyName());
+		receFlow.setUnit(orderRecord.getUnit());
+		receFlow.setMincount(orderRecord.getMincount());
+		receFlow.setUrl(orderRecord.getUrl());
+		receFlow.setDescription(orderRecord.getDescription());
+		receFlow.setPropertyType("1".equals(orderRecord.getIsDigit())?PropertyTypeEnum.数字资产.getValue()+"":PropertyTypeEnum.个性资产.getValue()+"");
+		tradeFlowDao.insert(receFlow);
+		
+		return true;
+	}
+	
+	
 	/**
 	 * 丢弃资产流水创建。
 	 */
@@ -236,7 +286,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		dropFlow.setProductId(orderRecord.getProductId());
 		dropFlow.setTallyTag(0);
 		dropFlow.setCount(orderRecord.getCount());
-		dropFlow.setTradeType(TradeTypeEnum.丢弃资产.getValue());
+		dropFlow.setTradeType(orderRecord.getTradeType());
 		dropFlow.setCreateTime(DateUtil.getSystemDate());
 		
 		dropFlow.setOriginOpenid(orderRecord.getOriginOpenid());
@@ -246,7 +296,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		dropFlow.setMincount(orderRecord.getMincount());
 		dropFlow.setUrl(orderRecord.getUrl());
 		dropFlow.setDescription(orderRecord.getDescription());
-		dropFlow.setPropertyType(orderRecord.getIsDigit());
+		dropFlow.setPropertyType(orderRecord.getPropertyType());
 		tradeFlowDao.insert(dropFlow);
 		
 		return true;
@@ -276,7 +326,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		fromFlow.setMincount(orderRecord.getMincount());
 		fromFlow.setUrl(orderRecord.getUrl());
 		fromFlow.setDescription(orderRecord.getDescription());
-		fromFlow.setPropertyType(orderRecord.getIsDigit());
+		fromFlow.setPropertyType(orderRecord.getPropertyType());
 		tradeFlowDao.insert(fromFlow);
 		
 		TradeFlow receFlow = new TradeFlow();
@@ -298,7 +348,7 @@ public class CreateTradeOrderServiceImpl implements CreateTradeOrderService {
 		receFlow.setMincount(orderRecord.getMincount());
 		receFlow.setUrl(orderRecord.getUrl());
 		receFlow.setDescription(orderRecord.getDescription());
-		receFlow.setPropertyType(orderRecord.getIsDigit());
+		receFlow.setPropertyType(orderRecord.getPropertyType());
 		tradeFlowDao.insert(receFlow);
 		
 		return true;

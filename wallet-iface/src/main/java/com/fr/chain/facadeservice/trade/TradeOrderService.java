@@ -14,9 +14,9 @@ import com.fr.chain.vo.trade.QueryTradeOrderVo;
 import com.fr.chain.vo.trade.Res_QueryTradeFlowVo;
 import com.fr.chain.vo.trade.Res_QueryTradeOrderVo;
 import com.fr.chain.vo.trade.Res_SendPropertyVo;
-import com.fr.chain.vo.trade.Res_TradeOrderVo;
+import com.fr.chain.vo.trade.Res_TransDigitVo;
 import com.fr.chain.vo.trade.SendPropertyVo;
-import com.fr.chain.vo.trade.TradeOrderVo;
+import com.fr.chain.vo.trade.TransDigitVo;
 
 public interface TradeOrderService {
 	
@@ -31,12 +31,57 @@ public interface TradeOrderService {
 	
 	public int updateByExampleSelective (TradeOrder record, TradeOrderExample example);
 	
+	/**
+	 *数字资产转账 
+	 * @param msg
+	 * @param msgVo
+	 * @param res_TradeOrderVo
+	 */
+	public void createTransDigit(Message msg,TransDigitVo msgVo,Res_TransDigitVo res_TransDigitVo);
 	
-	public void createTradeOrder(Message msg,TradeOrderVo msgVo,Res_TradeOrderVo res_TradeOrderVo);
-	public void queryAndCreateTradeOrder(Message msg, QueryTradeOrderVo msgVo, Res_QueryTradeOrderVo res_QueryTradeOrderVo );
-	public void queryAndCreateTradeFlow(Message msg, QueryTradeFlowVo msgVo, Res_QueryTradeFlowVo res_QueryTradeFlowVo );
+	/**
+	 * 查询订单
+	 * @param msg
+	 * @param msgVo
+	 * @param res_QueryTradeOrderVo
+	 */
+	public void queryTradeOrder(Message msg, QueryTradeOrderVo msgVo, Res_QueryTradeOrderVo res_QueryTradeOrderVo );
+	
+	/**
+	 * 查询流水
+	 * @param msg
+	 * @param msgVo
+	 * @param res_QueryTradeFlowVo
+	 */
+	public void queryTradeFlow(Message msg, QueryTradeFlowVo msgVo, Res_QueryTradeFlowVo res_QueryTradeFlowVo );
+	
+	/**
+	 * 发送资产
+	 * @param msg
+	 * @param msgVo
+	 * @param res_SendPropertyVo
+	 */
 	public void sendAndCreateProperty(Message msg, SendPropertyVo msgVo, Res_SendPropertyVo res_SendPropertyVo );
+	
+	/**
+	 * 领取资产
+	 * @param msg
+	 * @param msgVo
+	 * @param responseMsg
+	 */
 	public void getAndCreateProperty(Message msg, GetPropertyVo msgVo, ResponseMsg responseMsg  );
+	
+	/**
+	 * 资产变更
+	 * @param msg
+	 * @param msgVo
+	 * @param responseMsg
+	 */
 	public void changeAndDeleteProperty(Message msg, ChangePropertyVo msgVo, ResponseMsg responseMsg);
+	
+	/**
+	 * 发送资产之后,24小时未领取,资产退回
+	 */
+	public void refundAndDeleteProperty(TradeOrder tradeOrder);
 	
 }

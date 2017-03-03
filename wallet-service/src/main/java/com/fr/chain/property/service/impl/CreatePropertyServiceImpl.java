@@ -4,11 +4,10 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.hibernate.validator.internal.xml.PropertyType;
 import org.springframework.stereotype.Service;
 
 import com.fr.chain.enums.PropertyStatusEnum;
-import com.fr.chain.enums.PropertyTypeEnum;
+import com.fr.chain.enums.SystemOpenIdEnum;
 import com.fr.chain.property.db.dao.ProductInfoDao;
 import com.fr.chain.property.db.dao.PropertyDao;
 import com.fr.chain.property.db.entity.ProductInfo;
@@ -63,9 +62,6 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 		property.setMinCount(orderRecord.getMincount());
 		property.setCount(orderRecord.getCount());
 		property.setUrl(orderRecord.getUrl());
-//		if(orderRecord.getAmount()!=null){
-//			property.setAmount(orderRecord.getAmount());
-//		}						
 		property.setDescription(orderRecord.getDescription());							
 		//调用底层区块链生成地址
 		property.setCreateTime(DateUtil.getSystemDate());
@@ -77,10 +73,6 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 	 */
 	@Override
 	public boolean inserPropertyFreezen(TradeOrder orderRecord,int srcCount,String srcAddress,int receCount,String receAddress){
-//		int propertytype = PropertyTypeEnum.数字资产.getValue();
-//		if(!"1".equals(orderRecord.getIsDigit())){
-//			propertytype = PropertyTypeEnum.个性资产.getValue();
-//		}
 		//srcCount等于0，原有商品资产全部送出
 		//srcCount非0，原有商品资产有剩余
 		if(srcCount!=0){
@@ -91,9 +83,10 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 			srcProperty.setAppId(orderRecord.getAppId());
 			srcProperty.setOpenId(orderRecord.getOpenId());
 			srcProperty.setProductId(orderRecord.getProductId());
+			srcProperty.setProductDesc(orderRecord.getProductDesc());
 			srcProperty.setAddress(srcAddress);
 			srcProperty.setCount(srcCount+"");
-			srcProperty.setStatus(PropertyStatusEnum.可用.getValue());//***接入链子钱，认为成功
+			srcProperty.setStatus(PropertyStatusEnum.可用.getValue());//接入区块链之前，认为成功
 			srcProperty.setCreateTime(DateUtil.getSystemDate());
 			
 			srcProperty.setOriginOpenid(orderRecord.getOriginOpenid());
@@ -111,8 +104,9 @@ public class CreatePropertyServiceImpl implements CreatePropertyService {
 		sysProperty.setOrderId(orderRecord.getOrderId());
 		sysProperty.setMerchantId(orderRecord.getMerchantId());
 		sysProperty.setAppId(orderRecord.getAppId());
-		sysProperty.setOpenId("OpenId_sys");
+		sysProperty.setOpenId(SystemOpenIdEnum.系统默认账户.getName());
 		sysProperty.setProductId(orderRecord.getProductId());
+		sysProperty.setProductDesc(orderRecord.getProductDesc());
 		sysProperty.setAddress(receAddress);
 		sysProperty.setCount(receCount+"");
 		sysProperty.setStatus(PropertyStatusEnum.可用.getValue());

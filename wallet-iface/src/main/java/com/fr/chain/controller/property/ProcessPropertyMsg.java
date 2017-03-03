@@ -52,7 +52,11 @@ public class ProcessPropertyMsg {
 		gpmsg.setBodyDatas(bodys);		
 	}
 
-	
+	/**
+	 * 创建资产（数字资产无法创建资产，通过购买或转入添加）
+	 * @param msg
+	 * @return
+	 */
 	public Message<MsgBody> processCreateProperty(Message<CreatePropertyVo> msg) {
 		buildCreatePropertyBody(msg);
 		log.debug("Create property msg:" + msg);
@@ -66,26 +70,26 @@ public class ProcessPropertyMsg {
 						this.validNull(msgVo);
 						//新建返回报文
 						Res_CreatePropertyVo res_CreatePropertyVo =new Res_CreatePropertyVo(msgVo.getDatano());
-						//验证productid
+						//productid为空时，为新的自定义资产接口产生productid并返回
 						ProductInfo productInfo =propertyService.selectProduct4CreateProperty(msg, msgVo);
 						//具体每笔业务
 						propertyService.createProperty(msg, msgVo, res_CreatePropertyVo,productInfo);
 						//组装返回报文
 						resp.put(msgVo.getDatano(), res_CreatePropertyVo);
 					}catch (MessageException me){
-						log.error("no limit to create Propuct failed:" + me.getMessage(), me);
+						//log.error("no limit to create Propuct failed:" + me.getMessage(), me);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),me.getMessage()));
 					}
 					catch (NullPointerException ne) {
-						log.error("Create Account is failed:" + ne.getMessage(), ne);
+						//log.error("Create Account is failed:" + ne.getMessage(), ne);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ne.getMessage()));
 					}
 					catch (IllegalArgumentException ile) {
-						log.error("Create Account is failed:" + ile.getMessage(), ile);
+						//log.error("Create Account is failed:" + ile.getMessage(), ile);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ile.getMessage()));
 					}
 					catch (Exception e) {
-						log.error("Create Account is failed:" + e.getMessage(), e);
+						log.error("CreateProperty is failed:" + e.getMessage(), e);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
 					}
 				}
@@ -107,7 +111,7 @@ public class ProcessPropertyMsg {
 	
 	public Message<MsgBody> processQueryProperty(Message<QueryPropertyVo> msg){
 		buildQueryPropertyBody(msg);
-		log.debug("Create property msg:" + msg);
+		log.debug("Query property msg:" + msg);
 		Map<String,MsgBody> resp = new LinkedHashMap<String, MsgBody>();
 		try {
 			List<QueryPropertyVo> datas = msg.getBodyDatas();
@@ -122,22 +126,22 @@ public class ProcessPropertyMsg {
 						//设置返回报文
 						resp.put(msgVo.getDatano(), res_QueryPropertyVo);
 					}catch (NullPointerException ne) {
-						log.error("Create Account is failed:" + ne.getMessage(), ne);
+						//log.error("Create Account is failed:" + ne.getMessage(), ne);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ne.getMessage()));
 					}
 					catch (IllegalArgumentException ile) {
-						log.error("Create Account is failed:" + ile.getMessage(), ile);
+						//log.error("Create Account is failed:" + ile.getMessage(), ile);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ile.getMessage()));
 					}
 					catch (Exception e) {
-						log.error("Create Account is failed:" + e.getMessage(), e);
+						log.error("Query Property is failed:" + e.getMessage(), e);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),e.getMessage()));
 					}
 				}				
 			}
 		}		
 		catch (Exception e) {
-			log.error("Create Account is failed:" + e.getMessage(), e);
+			log.error("Query  is failed:" + e.getMessage(), e);
 			Map<String, MsgBody> errResp = new LinkedHashMap<String, MsgBody>();
 			for (MsgBody body : msg.getBodyDatas()) {	
 				resp.put(body.getDatano(), new ResponseMsg(body.getDatano(),BaseStatusEnum.失败.getCode().toString(), e.getMessage()));
@@ -158,7 +162,7 @@ public class ProcessPropertyMsg {
 //		if(StringUtil.isBlank(msgVo.getProductid())) throw new NullPointerException(String.format(error,"productid"));
 //		if(StringUtil.isBlank(msgVo.getIsdigit())) throw new NullPointerException(String.format(error,"isdigit"));
 //		if(StringUtil.isBlank(msgVo.getSigntype())) throw new NullPointerException(String.format(error,"signtype"));
-//		if(StringUtil.isBlank(msgVo.getPropertyname())) throw new NullPointerException(String.format(error,"propertyname"));
+		if(StringUtil.isBlank(msgVo.getPropertyname())) throw new NullPointerException(String.format(error,"propertyname"));
 		if(StringUtil.isBlank(msgVo.getCount())) throw new NullPointerException(String.format(error,"count"));		
 	}
 	

@@ -1,6 +1,5 @@
 package com.fr.chain.vo.property;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +11,7 @@ import lombok.Data;
 public class Res_QueryPropertyVo extends MsgBody{
 	
 	//资产详情
-	private List<PropertyInfo> PropertyInfoList;  //查询多条
+	private List<PropertyInfo> propertyinfolist;  //查询多条
 	
 	@Data
 	public static class PropertyInfo{	
@@ -30,11 +29,11 @@ public class Res_QueryPropertyVo extends MsgBody{
 	}
 	
 	public Res_QueryPropertyVo(){	
-		PropertyInfoList = new ArrayList<PropertyInfo> ();
+		propertyinfolist = new ArrayList<PropertyInfo> ();
 	}
 	
 	public Res_QueryPropertyVo(String datano){
 		this.datano = datano;
-		PropertyInfoList = new ArrayList<PropertyInfo> ();
+		propertyinfolist = new ArrayList<PropertyInfo> ();
 	}
 }

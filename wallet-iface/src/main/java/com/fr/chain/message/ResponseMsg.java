@@ -9,8 +9,8 @@ import lombok.Data;
 public class ResponseMsg extends MsgBody {
 
 	protected String status = "1";// 返回接收状态,1是成功，0为失败
-	protected String retCode = "1";// 返回代码
-	protected String retMessage = "successful";// 返回描述编码
+	protected String retcode = "1";// 返回代码
+	protected String retmessage = "successful";// 返回描述编码
 	
 	/**
 	 * error
@@ -22,8 +22,8 @@ public class ResponseMsg extends MsgBody {
 		super();
 		this.datano = datano;
 		this.status = "0";
-		this.retCode = retCode;
-		this.retMessage = retMessage;
+		this.retcode = retCode;
+		this.retmessage = retMessage;
 	}
 
 	public ResponseMsg(String datano) {

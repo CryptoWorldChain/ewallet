@@ -26,9 +26,9 @@ import com.fr.chain.vo.trade.QueryTradeOrderVo;
 import com.fr.chain.vo.trade.Res_QueryTradeFlowVo;
 import com.fr.chain.vo.trade.Res_QueryTradeOrderVo;
 import com.fr.chain.vo.trade.Res_SendPropertyVo;
-import com.fr.chain.vo.trade.Res_TradeOrderVo;
+import com.fr.chain.vo.trade.Res_TransDigitVo;
 import com.fr.chain.vo.trade.SendPropertyVo;
-import com.fr.chain.vo.trade.TradeOrderVo;
+import com.fr.chain.vo.trade.TransDigitVo;
 
 
 @Slf4j
@@ -37,10 +37,10 @@ public class ProcessTradeMsg {
 	@Resource
 	private TradeOrderService tradeOrderService;
 	
-	private void buildTradeOrderBody(Message<TradeOrderVo> gpmsg) {
-		List<TradeOrderVo> bodys = new ArrayList<>();
+	private void buildTradeOrderBody(Message<TransDigitVo> gpmsg) {
+		List<TransDigitVo> bodys = new ArrayList<>();
 		for (JsonNode node : gpmsg.getAnDatas()) {
-			bodys.add(JsonUtil.json2Bean(node, TradeOrderVo.class));
+			bodys.add(JsonUtil.json2Bean(node, TransDigitVo.class));
 		} 
 		gpmsg.setBodyDatas(bodys);
 	}
@@ -84,26 +84,26 @@ public class ProcessTradeMsg {
 	}
 	
 	/**
-	 * 资产交易
+	 * 数字资产转账
 	 * @param msg
 	 * @return
 	 */
-	public Message<MsgBody> processTradeOrder(Message<TradeOrderVo> msg){
+	public Message<MsgBody> processTransDigit(Message<TransDigitVo> msg){
 		buildTradeOrderBody(msg);
 		log.debug("TradeOrder msg:" + msg);
 		Map<String,MsgBody> resp = new LinkedHashMap<String, MsgBody>();
 		try {
-			List<TradeOrderVo> datas = msg.getBodyDatas();
+			List<TransDigitVo> datas = msg.getBodyDatas();
 			if (datas != null && datas.size() > 0) {
-				for (TradeOrderVo msgVo : datas) {
+				for (TransDigitVo msgVo : datas) {
 					try{					
 						this.validNull(msgVo);						
 						//新建返回报文
-						Res_TradeOrderVo res_TradeOrderVo =new Res_TradeOrderVo(msgVo.getDatano());
+						Res_TransDigitVo res_TransDigitVo =new Res_TransDigitVo(msgVo.getDatano());
 						//具体每笔业务
-						tradeOrderService.createTradeOrder(msg, msgVo, res_TradeOrderVo);
+						tradeOrderService.createTransDigit(msg, msgVo, res_TransDigitVo);
 						//设置返回报文
-						resp.put(msgVo.getDatano(), res_TradeOrderVo);
+						resp.put(msgVo.getDatano(), res_TransDigitVo);
 					}catch (NullPointerException ne) {
 						log.error("QueryTradeOrder is failed:" + ne.getMessage(), ne);
 						resp.put(msgVo.getDatano(), new ResponseMsg(msgVo.getDatano(),BaseStatusEnum.失败.getCode().toString(),ne.getMessage()));
@@ -141,7 +141,7 @@ public class ProcessTradeMsg {
 						//新建返回报文
 						Res_QueryTradeOrderVo res_QueryTradeOrderVo =new Res_QueryTradeOrderVo(msgVo.getDatano());
 						//具体每笔业务
-						tradeOrderService.queryAndCreateTradeOrder(msg, msgVo, res_QueryTradeOrderVo);
+						tradeOrderService.queryTradeOrder(msg, msgVo, res_QueryTradeOrderVo);
 						//设置返回报文
 						resp.put(msgVo.getDatano(), res_QueryTradeOrderVo);
 					}catch (NullPointerException ne) {
@@ -183,7 +183,7 @@ public class ProcessTradeMsg {
 						//新建返回报文
 						Res_QueryTradeFlowVo res_QueryTradeFlowVo =new Res_QueryTradeFlowVo(msgVo.getDatano());
 						//具体每笔业务
-						tradeOrderService.queryAndCreateTradeFlow(msg, msgVo, res_QueryTradeFlowVo);
+						tradeOrderService.queryTradeFlow(msg, msgVo, res_QueryTradeFlowVo);
 						//设置返回报文
 						resp.put(msgVo.getDatano(), res_QueryTradeFlowVo);
 					}catch (NullPointerException ne) {
@@ -344,7 +344,7 @@ public class ProcessTradeMsg {
 	
 	
 
-	private void validNull(TradeOrderVo msgVo){
+	private void validNull(TransDigitVo msgVo){
 		String error="%s is null or empty";
 		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
 		if(StringUtil.isBlank(msgVo.getProductid())) throw new NullPointerException(String.format(error,"productid"));
@@ -365,6 +365,7 @@ public class ProcessTradeMsg {
 		String error="%s is null or empty";
 		if(StringUtil.isBlank(msgVo.getDatano())) throw new NullPointerException(String.format(error,"datano"));
 		if(StringUtil.isBlank(msgVo.getPackageid())) throw new NullPointerException(String.format(error,"packageid"));
+		if(StringUtil.isBlank(msgVo.getPropertytype())) throw new NullPointerException(String.format(error,"propertytype"));
 		List<SendPropertyVo.PackageData> dataList = msgVo.getData();
 		if(dataList == null) throw new NullPointerException(String.format(error,"data"));
 		for(SendPropertyVo.PackageData data: dataList){

@@ -10,9 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.fr.chain.enums.PropertyStatusEnum;
 import com.fr.chain.enums.TradeTypeEnum;
-import com.fr.chain.ewallet.db.entity.WalletAdress;
-import com.fr.chain.ewallet.db.entity.WalletAdressExample;
-import com.fr.chain.ewallet.db.entity.WalletAdressKey;
 import com.fr.chain.facadeservice.wallet.WalletService;
 import com.fr.chain.message.Message;
 import com.fr.chain.property.db.entity.ProductDigit;
@@ -26,26 +23,10 @@ import com.fr.chain.utils.DateUtil;
 import com.fr.chain.utils.IDGenerator;
 import com.fr.chain.vo.wallet.QueryWalletAdressVo;
 import com.fr.chain.vo.wallet.Res_QueryWalletAdressVo;
-import com.fr.chain.wallet.service.CreateWalletAdressService;
-import com.fr.chain.wallet.service.DelWalletAdressService;
-import com.fr.chain.wallet.service.QueryWalletAdressService;
-import com.fr.chain.wallet.service.UpdateWalletAdressService;
 
 @Slf4j
 @Service("walletService")
 public class WalletServiceImpl implements WalletService {
-
-	@Resource
-	CreateWalletAdressService  createWalletAdressService;
-	
-	@Resource
-	QueryWalletAdressService queryWalletAdressService;
-	
-	@Resource
-	DelWalletAdressService delWalletAdressService;
-	
-	@Resource
-	UpdateWalletAdressService updateWalletAdressService;
 	@Resource
 	QueryPropertyService queryPropertyService ;
 	@Resource
@@ -71,9 +52,10 @@ public class WalletServiceImpl implements WalletService {
 			address = listProperty.get(0).getAddress();
 		}else{
 			address = IDGenerator.nextID();  //调用底层chain
-			
 			ProductDigit digitProduct = queryPropertyService.selectProductDigitByKey(msgVo.getWalletcode());
-			
+			if(digitProduct == null){
+				throw new IllegalArgumentException("暂不支持此数字资产:productid:" + msgVo.getWalletcode());
+			}
 			//创建订单---创建资产的订单
 			TradeOrder orderRecord = new TradeOrder();
 			orderRecord.setOrderId(IDGenerator.nextID());
@@ -85,7 +67,6 @@ public class WalletServiceImpl implements WalletService {
 			orderRecord.setOriginOpenid(digitProduct.getOriginOpenid());	
 			orderRecord.setProductId(digitProduct.getProductId());
 			orderRecord.setPropertyType(digitProduct.getPropertyType()+"");
-//			orderRecord.setIsSelfSupport(isSelfSupport);
 			orderRecord.setProductDesc(digitProduct.getProductDesc());
 			orderRecord.setIsDigit(1+"");
 			orderRecord.setSigntype(digitProduct.getSignType());
@@ -94,7 +75,6 @@ public class WalletServiceImpl implements WalletService {
 			orderRecord.setMincount(digitProduct.getMinCount());
 			orderRecord.setCount(0+"");
 			orderRecord.setUrl(digitProduct.getUrl());
-//			orderRecord.setAmount(amount);
 			orderRecord.setDescription(digitProduct.getDescription());
 			orderRecord.setAddress(address);
 			orderRecord.setCreateTime(DateUtil.getSystemDate());
@@ -134,35 +114,13 @@ public class WalletServiceImpl implements WalletService {
 		res_QueryWalletAdressVo.setWalletaddress(address);
 	}
 	
-	
-	@Override
-    public int insert(WalletAdress info){
-    	return createWalletAdressService.insert(info);
-    }
-	
-	@Override
-	public int batchInsert(List<WalletAdress> records){
-		return createWalletAdressService.batchInsert(records);
+	public List<String> getWalletAdress(String walletCode, String OpenId){
+		return null;
+		
 	}
 	
-	@Override
-	public int deleteByPrimaryKey (WalletAdressKey key){
-		return delWalletAdressService.deleteByPrimaryKey(key);
-	}
-	
-	@Override
-	public List<WalletAdress>  selectByExample(WalletAdress info){
-		return queryWalletAdressService.selectByExample(info);
-	}
-	
-	@Override
-	public List<WalletAdress>  selectByExample(WalletAdressExample info){
-		return queryWalletAdressService.selectByExample(info);
-	}
-	
-	@Override
-	public int updateByExampleSelective (WalletAdress record, WalletAdressExample example){
-		return updateWalletAdressService.updateByExampleSelective(record,example);
+	public String getNewWalletAdress(String walletCode, String OpenId ){
+		return null;		
 	}
 	
 	

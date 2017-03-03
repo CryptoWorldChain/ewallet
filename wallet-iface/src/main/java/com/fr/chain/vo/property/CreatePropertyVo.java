@@ -14,5 +14,5 @@ public class CreatePropertyVo extends MsgBody{
 	private String mincount;
 	private String count;
 	private String url;
-	private String description;
+	//private String description;
 }

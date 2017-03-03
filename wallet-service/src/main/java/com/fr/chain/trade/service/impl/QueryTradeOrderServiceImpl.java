@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.fr.chain.trade.db.dao.TradeFlowDao;
 import com.fr.chain.trade.db.dao.TradeOrderDao;
 import com.fr.chain.trade.db.entity.TradeFlow;
+import com.fr.chain.trade.db.entity.TradeFlowExample;
 import com.fr.chain.trade.db.entity.TradeOrder;
 import com.fr.chain.trade.db.entity.TradeOrderExample;
 import com.fr.chain.trade.db.entity.TradeOrderKey;
@@ -40,5 +41,10 @@ public class QueryTradeOrderServiceImpl implements QueryTradeOrderService {
 	@Override
 	public List<TradeFlow> selectByExample(TradeFlow info){
 		return tradeFlowDao.selectByExample(tradeFlowDao.getExample(info));
+	}
+	
+	@Override
+	public List<TradeFlow> selectByExample(TradeFlowExample info){
+		return tradeFlowDao.selectByExample(info);
 	}
 }

@@ -65,19 +65,19 @@ public class TradeOrderCtrl extends BasicCtrl {
 	
 	
 	/**
-	 * 转账订单
+	 * 数字资产转账
 	 * @param req
 	 * @param resp
 	 * @return
 	 */
-	@RequestMapping(value = "/v1_00/tradeOrder", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/transdigit", method = RequestMethod.POST)
 	@ResponseBody
 	public Object tradeOrder(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);
 		Message inMsg=null;
 		try {
 			inMsg = MessageBuilder.buildMessage(jsontxt);		
-			Object obj=processTradeMsg.processTradeOrder(inMsg);
+			Object obj=processTradeMsg.processTransDigit(inMsg);
 			try{
 				log.debug("[RESP]:"+JsonUtil.bean2Json(obj));
 			}catch(Exception e){
@@ -99,7 +99,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 	 * @param resp
 	 * @return
 	 */
-	@RequestMapping(value = "/v1_00/querytradeOrder", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/querytradeorder", method = RequestMethod.POST)
 	@ResponseBody
 	public Object queryTradeOrder(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);
@@ -128,7 +128,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 	 * @param resp
 	 * @return
 	 */
-	@RequestMapping(value = "/v1_00/querytradeFlow", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1_00/querytradeflow", method = RequestMethod.POST)
 	@ResponseBody
 	public Object queryTradeFlow(HttpServletRequest req, HttpServletResponse resp)  {
 		String jsontxt = httpRequestHelper.getJsonTxt(req);
@@ -217,7 +217,7 @@ public class TradeOrderCtrl extends BasicCtrl {
 	
 	
 	/**
-	 * 消费或者丢弃
+	 * 消费或者丢弃资产
 	 * @param req
 	 * @param resp
 	 * @return

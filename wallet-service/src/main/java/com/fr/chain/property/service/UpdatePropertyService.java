@@ -8,7 +8,4 @@ public interface UpdatePropertyService {
 	public int updateByExampleSelective (Property record, PropertyExample example);
 	public int updateByPrimaryKey(Property record);
 	public int updateByPrimaryKeySelective(Property record);
-
-	//根据订单更改资产状态
-	public boolean updateByOrder(TradeOrder record,String address);
 }
