@@ -12,6 +12,13 @@ import com.fr.chain.vo.property.QueryPropertyVo;
 import com.fr.chain.vo.property.Res_CreatePropertyVo;
 import com.fr.chain.vo.property.Res_QueryPropertyVo;
 
+/**
+ * 注意事务用AOP配置的,参见配置文件
+ * @title 
+ * @author Dylan
+ * @date 2017年2月8日
+ *
+ */
 public interface PropertyService {
 	
     public int insert(Property info);

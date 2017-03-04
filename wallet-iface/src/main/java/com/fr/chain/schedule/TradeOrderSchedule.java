@@ -26,9 +26,8 @@ public class TradeOrderSchedule {
 	
 	private static final long refundPropertyRate= 1*60*1000; //1分钟执行一次
 	
-	private static  final long refundPropertyTime = NumberUtil.toLong(FConfig.getProValue("refundPropertyTime")); // 时间
-	
-	//private static final long refundPropertyTime = 3*60*1000; // 时间 3分钟
+	//当前时间与订单创建时间相差超过24小时，退回资产
+	private static  final long refundPropertyTime = 24*60*60*1000; //24小时=86400000;  //NumberUtil.toLong(FConfig.getProValue("refundPropertyTime")); // 时间
 	
 	/** 
 	 * 发送出去的资产,24小时不领取,将退回给发送者
@@ -49,9 +48,10 @@ public class TradeOrderSchedule {
 		}						
 		//退回逻辑处理
 		for(TradeOrder tmpTradeOrder:tradeOrderList){ 
+			//当前时间与订单创建时间相差超过24小时，退回资产
 			long diffTime = System.currentTimeMillis() - tmpTradeOrder.getCreateTime().getTime();
-			if(diffTime < refundPropertyTime){ 
-				continue;
+			if(diffTime < refundPropertyTime){  
+				continue; //时间不够24小时，轮询下一条
 			}
 			tradeOrderService.refundAndDeleteProperty(tmpTradeOrder);			
 		}

@@ -18,6 +18,13 @@ import com.fr.chain.vo.trade.Res_TransDigitVo;
 import com.fr.chain.vo.trade.SendPropertyVo;
 import com.fr.chain.vo.trade.TransDigitVo;
 
+/**
+ * 注意事务用AOP配置的,参见配置文件
+ * @title 
+ * @author Dylan
+ * @date 2017年2月8日
+ *
+ */
 public interface TradeOrderService {
 	
     public int insert(TradeOrder info);
